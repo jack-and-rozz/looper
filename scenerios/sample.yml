@@ -1,0 +1,31 @@
+# http://bakafire.main.jp/rooper/pdf/toukou_001.pdf
+expansion: btx
+loop: 3
+days: 8
+advice: True
+rule_y: 殺人計画
+rule_x1: 因果の糸
+rule_x2: 妄想拡大ウイルス
+characters: 
+  男子学生: クロマク
+  女子学生: パーソン
+  お嬢様: キーパーソン
+  巫女: パーソン
+  刑事: ミスリーダー
+  サラリーマン: パーソン
+  情報屋: パーソン
+  医者: キラー
+  入院患者: パーソン
+affairs:
+  2:
+    - 不安拡大
+    - 医者
+  4:
+    - 邪気の汚染
+    - サラリーマン
+  5:
+    - 自殺
+    - 女子学生
+  7:
+    - 殺人事件
+    - 情報屋
