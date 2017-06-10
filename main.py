@@ -16,6 +16,8 @@ def main(args):
   scenerio = common.dotDict(load_scenerio("scenerios/sample.yml"))
   common.dict_print(scenerio)
   m = GameManager(scenerio)
+  m.start_game()
+  
 if __name__ == "__main__":
   desc = ""
   parser = argparse.ArgumentParser(description=desc)

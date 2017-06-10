@@ -1,7 +1,6 @@
 # coding:utf-8
 from game.base.board import Board
 from game.base.players import Actor, Writer
-import characters
 
 class GameManager(object):
   def __init__(self, scenerio):
@@ -10,6 +9,7 @@ class GameManager(object):
     self.writer = Writer()
     self.leader = 0
     self.loop = 1
+    self.scenerio = scenerio
     self.max_loop = scenerio.loop
     self.max_day = scenerio.days
   def start_game(self):
@@ -26,8 +26,8 @@ class GameManager(object):
     pass
 
   def start_loop(self, loop):
-    self.board = Board(scenerio, loop, self.board)
-    extt(1)
+    self.board = Board(self.scenerio, loop, self.board)
+    exit(1)
     for d in xrange(1, self.max_day):
       self.day_step()
     

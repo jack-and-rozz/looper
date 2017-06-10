@@ -1,5 +1,11 @@
 # coding: utf-8
 
-class Rule(object):
+class RuleBase(object):
   pass
 
+
+class RuleX(RuleBase):
+  pass
+
+class RuleY(RuleBase):
+  pass

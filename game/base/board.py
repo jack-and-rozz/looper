@@ -1,8 +1,9 @@
 # coding:utf-8
-from utils import common
+import importlib
 
-PlaceList = ['病院', '神社', '都市', '学校']
-PlaceIds = common.to_ids(PlaceList, start=1)
+from utils import common
+import game.base.characters as characters
+import game.expansions as expansions
 
 class Board(object):
   def __init__(self, scenerio, loop, prev_board=None):
@@ -10,7 +11,12 @@ class Board(object):
     self.day = 0
     self.loop = loop
     self.places = [Hospital(), Shrine(), City(), School()]
-    print scenerio
+    self.expansion = importlib.import_module('game.expansions.btx')
+    #print self.expansion.roles
+    exit(1)
+    for c, r in scenerio.characters.items():
+      role = RoleBase
+      #character = 
 
   def show(self):
     pass
@@ -22,27 +28,23 @@ class PlaceBase(object):
 
 class Hospital(PlaceBase):
   def __init__(self):
-     super().__init__()
-     self.name = '病院'
-     self._id = 1 
+    self.name = '病院'
+    self._id = 1 
 
 class Shrine(PlaceBase):
   def __init__(self):
-     super().__init__()
-     self.name = '神社'
-     self._id = 2 
-
+    self.name = '神社'
+    self._id = 2 
+     
 class City(PlaceBase):
   def __init__(self):
-     super().__init__()
-     self.name = '都市'
-     self._id = 3
+    self.name = '都市'
+    self._id = 3
 
 class School(PlaceBase):
   def __init__(self):
-     super().__init__()
-     self.name = '学校'
-     self._id = 4
-
+    self.name = '学校'
+    self._id = 4
+     
 
 
