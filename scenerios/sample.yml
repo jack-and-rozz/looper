@@ -1,4 +1,5 @@
 # http://bakafire.main.jp/rooper/pdf/toukou_001.pdf
+
 expansion: btx
 loop: 3
 days: 8
@@ -29,3 +30,11 @@ affairs:
   7:
     - 殺人事件
     - 情報屋
+
+godly_being_day: 0 #神格が登場するならその日を入力
+
+actors:
+  - RandomActor
+  - RandomActor
+  - RandomActor
+writer: RandomWriter

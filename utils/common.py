@@ -7,16 +7,31 @@ from itertools import chain
 from logging import getLogger, StreamHandler, FileHandler, Formatter, DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 ############################################
+#        Inheritance
+############################################
+
+class SuperSyntaxSugarMeta(type):
+  def __new__(cls, name, bases, dct):
+    obj = type.__new__(cls, name, bases, dct)
+    setattr(obj, '_%s__super' % name, super(obj))
+    return obj
+
+
+############################################
 #        Dictionary
 ############################################
 
+# class dotDict(dict):
+#   __getattr__ = dict.__getitem__
+#   __setattr__ = dict.__setitem__
+#   __delattr__ = dict.__delitem__
 class dotDict(dict):
   __getattr__ = dict.__getitem__
   __setattr__ = dict.__setitem__
   __delattr__ = dict.__delitem__
 
-def to_ids(l,  start=0):
-  return dict(zip(l, [i for i in range(start,len(l)+start)]))
+def to_ids(l,  start=0, dict_func=dotDict):
+  return dict_func(zip(l, [i for i in range(start,len(l)+start)]))
 
 def unicode_to_str(d, mode='encode', dict_func=collections.OrderedDict):
   def _unicode_to_str(v):
@@ -27,7 +42,7 @@ def unicode_to_str(d, mode='encode', dict_func=collections.OrderedDict):
     else:
       raise ValueError()
   new_d = dict_func({})
-  for key, value in d.iteritems():
+  for key, value in d.items():
     key = _unicode_to_str(key)
     value = [_unicode_to_str(x) for x in value] if type(value) == list else _unicode_to_str(value) 
 
@@ -38,7 +53,7 @@ def unicode_to_str(d, mode='encode', dict_func=collections.OrderedDict):
   return dict_func(new_d)
 
 def dict_print(d, indent=0):
-  for key, value in d.iteritems():
+  for key, value in d.items():
     space =' '
     if isinstance(value, dict):
       print (space * indent + str(key) + ': ')
@@ -49,9 +64,9 @@ def dict_print(d, indent=0):
     else:
       print (space * indent + str(key) + ': ' + str(value))
 
-# # dictionaryのkey:value入れ替え
-# def invert_dict(dictionary):
-#     return {v:k for k, v in dictionary.items()}
+# dictionaryのkey:value入れ替え
+def invert_dict(dictionary):
+  return {v:k for k, v in dictionary.items()}
 
 # # 辞書のvalueでソート。デフォルトは降順
 # def sort_dict(dic, sort_type="DESC"):

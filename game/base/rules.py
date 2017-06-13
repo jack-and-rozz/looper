@@ -1,11 +1,17 @@
 # coding: utf-8
+from utils import common
 
 class RuleBase(object):
-  pass
+  __metaclass__ = common.SuperSyntaxSugarMeta
+  def __init__(self):
+    self.__super.__init__()  
 
+# class RuleX(RuleBase):
+#   __metaclass__ = common.SuperSyntaxSugarMeta
+#   def __init__(self):
+#     self.__super.__init__()  
 
-class RuleX(RuleBase):
-  pass
-
-class RuleY(RuleBase):
-  pass
+# class RuleY(RuleBase):
+#   __metaclass__ = common.SuperSyntaxSugarMeta
+#   def __init__(self):
+#     self.__super.__init__()  
