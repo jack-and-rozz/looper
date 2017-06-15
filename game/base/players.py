@@ -1,6 +1,7 @@
 # coding:utf-8
+import random, itertools
 from utils import common
-from game.base import consts
+from game.base.consts import to_place as ToPlace, to_character as ToCharacter
 import game.base.actions as act
 from game.managers.instance_manager import InstanceManager
 
@@ -19,6 +20,7 @@ class PlayerBase(object):
 
   def plot_action(self, state):
     raise NotImplementedError()
+
 
 class Actor(PlayerBase):
   __metaclass__ = common.SuperSyntaxSugarMeta
@@ -53,6 +55,9 @@ class RandomActor(Actor):
   def __init__(self, _id):
     self.__super.__init__(_id)
   def plot_action(self, state):
+    destinations = list(itertools.product([ToPlace, ToCharacter], []))
+    for dest, action in state.actors_plots:
+      print p
     print state
     exit(1)
 
