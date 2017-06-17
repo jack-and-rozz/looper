@@ -12,7 +12,7 @@ class PlayerBase(object):
 
   @property
   def available_actions(self):
-    return [action._id for action in self.actions if action.n_available != 0 and action.n_cards != 0]
+    return [action._id for action in self.actions if action.available]
 
   def restore_actions(self):
     for action in self.actions:
@@ -47,7 +47,12 @@ class Writer(PlayerBase):
     ]
     self.actions = InstanceManager(act.name_to_class, self.actions)
 
-  def plot_henchmans_position(board):
+  @property
+  def available_actions(self):
+    actions = self.__super.available_actions + [self.actions.get_id(act.PlusOneParanoia)]
+    return actions
+
+  def plot_henchmans_position(state):
     raise NotImplementedError
 
 class RandomActor(Actor):
@@ -55,21 +60,25 @@ class RandomActor(Actor):
   def __init__(self, _id):
     self.__super.__init__(_id)
   def plot_action(self, state):
-    destinations = list(itertools.product([ToPlace, ToCharacter], []))
-    for dest, action in state.actors_plots:
-      print p
-    print state
-    exit(1)
+    dests = set(list(itertools.product([ToPlace], state.places.ids)) + list(itertools.product([ToCharacter], state.characters.ids)))
+    filled_dests = set([d for d, _ in state.actors_plots])
+    dests = list(dests.difference(filled_dests))
+    dest = random.choice(dests)
+    action = random.choice(self.available_actions)
+    res = (dest, self.actions.get(action))
+    return res
 
 class RandomWriter(Writer):
   __metaclass__ = common.SuperSyntaxSugarMeta
   def __init__(self):
     self.__super.__init__()
-  def plot_action(self, state):
-    
-    print state
-    exit(1)
 
+  def plot_action(self, state):
+    dests = set(list(itertools.product([ToPlace], state.places.ids)) + list(itertools.product([ToCharacter], state.characters.ids)))
+    dests = random.sample(dests, 3)
+    actions = random.sample(self.available_actions, 3)
+    res = [(d, self.actions.get(a)) for d, a in zip(dests, actions)]
+    return res
 
 class HumanActor(Actor):
   __metaclass__ = common.SuperSyntaxSugarMeta

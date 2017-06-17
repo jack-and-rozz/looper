@@ -3,6 +3,7 @@ from collections import OrderedDict
 from utils import common
 from game.base import places
 from game.base.consts import character_properties as cprop
+
 class CharacterBase(object):
   def __init__(self):
     self.paranoia = 0 # 不安
@@ -21,6 +22,10 @@ class CharacterBase(object):
   def set_position(self, place):
     if not place in self.keepout:
       self.position = place
+
+  def apply_actions(self, actions):
+    if not actions:
+      return
 
 class BoyStudent(CharacterBase):
   def __init__(self):

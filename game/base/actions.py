@@ -5,14 +5,15 @@ from utils import common
 class ActionBase(object):
   __metaclass__ = common.SuperSyntaxSugarMeta
   def __init__(self, n_cards=1, n_available=None):
-    self.usable = True
+    self.available = True
     self.n_available = n_available
-    self.n_cards = n_cards
-    self._n_cards = n_cards
 
-  def restore(self):
-    self.n_cards = self._n_cards
-
+  def consume(self):
+    if self.n_available != None:
+      self.n_available -= 1
+      if self.n_available <= 0:
+        self.available = False
+  
 class MoveUp(ActionBase):
   def __init__(self):
     self.__super.__init__()

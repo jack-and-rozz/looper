@@ -23,26 +23,26 @@ class Information(object):
 class State(object):
   def __init__(self, board, show_hidden, show_plots):
     self._state = common.dotDict()
-    self._state.characters = []
-    self._state.places = []
+    self._state.characters = common.dotDict()
+    self._state.places = common.dotDict()
     self._state.actors_plots = []
     self._state.loop = board.loop
     self._state.day = board.day
-    for c in board.characters:
-      l = [c._id, c.position._id, c.alive, c.counters]
-      self._state.characters.append(l) 
-    for p in board.places:
-      l = [p._id, p.counters]
-      self._state.places.append(l)
+    self._state.ex_gauge = board.ex_gauge
+    self.characters.ids = [c._id for c in board.characters]
+    self.characters.positions = [c.position._id for c in board.characters]
+    self.characters.alive = [c.alive for c in board.characters]
+    self.characters.counters = [c.counters for c in board.characters]
+    self.places.ids = [p._id for p in board.places]
+    self.places.counters = [p.counters for p in board.places]
     # Hidden
     if show_hidden:
-      self._state.roles = []
-      for c in board.characters:
-        l = [c._id, c.role._id]
-        self._state.roles.append(l) 
+      self._state.roles = [c.role._id for c in board.characters]
       self._state.rules = [r._id for r in board.rules]
+
     if board.writers_plots and board.actors_plots:
       pass
+
   @property
   def characters(self):
     return self._state.characters
@@ -75,8 +75,8 @@ class Board(object):
     self.loop = loop
     self.actors = actors
     self.writer = writer
-    self.actors_plots = []
-    self.writers_plots = []
+    self.actors_plots = [] #[((0 or 1, dest_id), action_id), ...]
+    self.writers_plots = [] #[((0 or 1, dest_id), action_id), ...]
     self.day = 1
     self.phase = None
     self.ex_gauge = 0
@@ -109,20 +109,26 @@ class Board(object):
     self.affairs = InstanceManager(self.expansion.affairs.name_to_class, 
                                    affairs_list)
     self.rules = []
+
   def show_as_text(self):
     print ('-' * 40)
     print ("Loop: %d" % self.loop)
     print ("Day : %d" % self.day)
-    for place in self.places:
-      print place.classname + ' : ' + ', '.join(place.counters)
-    header = ['<Character>', '<Role>', '<Position>', 'Counters']
+
+    header = ['<Place>', '<Counters>']
+    data = [[p.classname, p.counters] for p in self.places]
+    df = DataFrame(data, columns=header, index=[p._id for p in self.places])
+    print df
+    print ''
+
+    header = ['<Character>', '<Role>', '<Position>', '<Counters>']
     data = [[character.classname, character.role.classname, character.position.classname, character.counters] for character in self.characters]
-    print DataFrame(data, columns=header)
+    df = DataFrame(data, columns=header, index=[c._id for c in self.characters])
+    print df
   
   def get_state(self, show_hidden=False, show_plots=True):
     # show_hidden: 非公開情報を表示するか
     # show_plots: プロットしたアクション内容を表示するか
-
     state = State(self, show_hidden=show_hidden, show_plots=show_plots)
     return state
 
@@ -142,7 +148,8 @@ class Board(object):
   def pre_loop(self, writer, actor):
     self.phase = consts.phases.PreLoop
     if self.characters.include(characters.HenchMan):
-      position = self.writer.plot_henchmans_position(self)
+      position_id = self.writer.plot_henchmans_position(self.get_state())
+      position = self.places.get(position_id)
       self.characters.get(characters.HenchMan).set_position(position)
 
   def plot_writer_actions(self):
@@ -154,15 +161,33 @@ class Board(object):
   def plot_actor_actions(self, leader_id):
     self.phase = consts.phases.ActorsAction
     for actor in self.actors:
-      state = self.get_state()
-      action = actor.plot_action(state, show_plots=False)
-    self.actors_plots.append(action)
+      state = self.get_state(show_plots=False)
+      action = actor.plot_action(state)
+      self.actors_plots.append(action)
 
   def process_actions(self):
     self.phase = consts.phases.ProcessAction
-    self.writer.restore_actions()
-    for actor in self.actors:
-      actor.restore_actions()
+    #self.writer.restore_actions()
+    #for actor in self.actors:
+    #  actor.restore_actions()
+
+    actions_on_board = self.actors_plots + self.writers_plots
+
+    for p in self.places:
+      a = [x[1] for x in filter(lambda x:x[0] == (consts.to_place, p._id), actions_on_board)]
+      for x in a:
+        x.consume()
+      p.apply_actions(a)
+
+    for c in self.characters:
+      a = [x[1] for x in filter(lambda x:x[0] == (consts.to_character, c._id), actions_on_board)]
+      for x in a:
+        x.consume()
+      c.apply_actions(a)
+      print a
+
+
+    exit(1)
   def use_writer_abilities(self):
     self.phase = consts.phases.WritersAbility
 

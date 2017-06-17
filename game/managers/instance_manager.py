@@ -40,22 +40,18 @@ class InstanceManager(object):
     if key == None:
       return None
     if type(key) == str:
-      return self.name_to_id[key]
+      return self.name_to_id[key] if key in self.name_to_id else None
     elif type(key) == int:
       return key
-    elif type(key) == type:
-      return self.class_to_id[key]
+    elif isinstance(key, type):
+      return self.class_to_id[key] if key in self.class_to_id else None
     else:
-      return self.instance_to_id[key]
+      return self.instance_to_id[key] if key in self.instance_to_id else None
   def get_name(self, key):
-    if key == None:
-      return None
-    return self.id_to_name[self.get_id(key)]
+    return self.id_to_name[self.get_id(key)] if self.get_id(key) in self.id_to_name else None
 
   def get(self, key):
-    if key == None:
-      return None
-    return self.id_to_instance[self.get_id(key)]
+    return self.id_to_instance[self.get_id(key)] if self.get_id(key) in self.id_to_instance else None
 
   def include(self, key):
     return True if self.get_id(key) in self.id_to_instance else False

@@ -7,7 +7,9 @@ class PlaceBase(object):
   def __init__(self):
     self.counters = []
     self.classname = self.__class__.__name__
-
+  def apply_actions(self, actions):
+    if not actions:
+      return
 
 class Hospital(PlaceBase):
   def __init__(self):
