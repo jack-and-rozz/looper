@@ -32,9 +32,11 @@ class State(object):
     self.characters.ids = [c._id for c in board.characters]
     self.characters.positions = [c.position._id for c in board.characters]
     self.characters.alive = [c.alive for c in board.characters]
-    self.characters.counters = [c.counters for c in board.characters]
+    self.characters.paranoia = [c.paranoia for c in board.characters]
+    self.characters.goodwill = [c.goodwill for c in board.characters]
+    self.characters.intrigue = [c.intrigue for c in board.characters]
     self.places.ids = [p._id for p in board.places]
-    self.places.counters = [p.counters for p in board.places]
+    self.places.intrigue = [p.intrigue for p in board.places]
     # Hidden
     if show_hidden:
       self._state.roles = [c.role._id for c in board.characters]
@@ -187,8 +189,7 @@ class Board(object):
       a = [x[1] for x in filter(lambda x:x[0] == (consts.to_character, c._id), actions_on_board)]
       for x in a:
         x.consume()
-      c.apply_actions(a)
-    exit(1)
+      c.apply_actions(a, self.places)
 
   def use_writer_abilities(self):
     self.phase = consts.phases.WritersAbility

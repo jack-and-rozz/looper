@@ -1,7 +1,9 @@
 # coding:utf-8
 from collections import OrderedDict
 from utils import common
-from game.base import places
+from game.base import places as places_lib
+from game.base import consts
+from game.base import actions as actions_lib
 from game.base.consts import character_properties as cprop
 
 class CharacterBase(object):
@@ -23,21 +25,41 @@ class CharacterBase(object):
     if not place in self.keepout:
       self.position = place
 
-  def apply_actions(self, actions):
+  def apply_actions(self, actions, places):
     if not actions:
       return
-    actions = acts.remove_forbidden_actions(actions)
-    for a in [a for a in common.select_instance(actions, [acts.IntrigueAction])]:
+    actions = actions_lib.remove_forbidden_actions(actions)
+    counter_action_types = [
+      actions_lib.IntrigueAction,
+      actions_lib.GoodwillAction,
+      actions_lib.ParanoiaAction,
+    ]
+    for a in [a for a in common.select_instance(actions, counter_action_types)]:
       a(self)
+    self.goodwill = max(0, self.goodwill)
+    self.intrigue = max(0, self.intrigue)
+    self.paranoia = max(0, self.paranoia)
 
-  def move(self, direction):
-    if isinstance(self.position, places.Hospital):
+    move_action_types = [
+      actions_lib.MoveRight,
+      actions_lib.MoveLeft,
+      actions_lib.MoveUp,
+      actions_lib.MoveDown,
+      actions_lib.MoveCross
+    ]
+    direction = (0, 0)
+    for a in [a for a in common.select_instance(actions, move_action_types)]:
+      direction += a(self)
+    self.move(direction, places)
+
+  def move(self, direction, places):
+    if isinstance(self.position, places_lib.Hospital):
       pass
-    elif isinstance(self.position, places.Shrine):
+    elif isinstance(self.position, places_lib.Shrine):
       pass
-    elif isinstance(self.position, places.City):
+    elif isinstance(self.position, places_lib.City):
       pass
-    elif isinstance(self.position, places.School):
+    elif isinstance(self.position, places_lib.School):
       pass
 
 class BoyStudent(CharacterBase):

@@ -1,5 +1,6 @@
 # coding:utf-8
 from collections import OrderedDict
+from game.base import consts
 from utils import common
 
 class ActionBase(object):
@@ -36,34 +37,48 @@ class ForbidMovement(MovementAction):
 class MoveUp(MovementAction):
   def __init__(self):
     self.__super.__init__()
+  def __call__(self, target):
+    return (0, 2)
 
 class MoveDown(MovementAction):
   def __init__(self):
     self.__super.__init__()
 
+  def __call__(self, target):
+    return (0, -2)
+
 class MoveLeft(MovementAction):
   def __init__(self):
     self.__super.__init__()
+  def __call__(self, target):
+    return (-2, 0)
 
 class MoveRight(MovementAction):
   def __init__(self):
     self.__super.__init__()
+  def __call__(self, target):
+    return (2, 0)
 
 class MoveCross(MovementAction):
   def __init__(self):
     self.__super.__init__(n_available=1)
+  def __call__(self, target):
+    movex = target.position.point[0] * -2
+    movey = target.position.point[1] * -2
+    return (movex, movey)
 
 class PlusOneParanoia(ParanoiaAction):
   def __init__(self, n_cards=1):
     self.__super.__init__(n_cards=n_cards)
   def __call__(self, target):
     target.paranoia += 1
-    
+
 class MinusOneParanoia(ParanoiaAction):
   def __init__(self, n_available=None):
     self.__super.__init__(n_available=n_available)
   def __call__(self, target):
     target.paranoia -= 1
+
 
 class ForbidParanoia(ParanoiaAction):
   def __init__(self):
