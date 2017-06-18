@@ -176,29 +176,17 @@ class Board(object):
     # 暗躍禁止2つ以上あったら両方無効
     if len([a for a in self.actors_plots if isinstance(a[1], actions.ForbidIntrigue)]) > 1:
       actions_on_board = [a for a in actions_on_board if not isinstance(a, actions.ForbidIntrigue)]
-    def remove_forbidden_actions(a):
-      if common.include_instance(a, actions.ForbidIntrigue):
-        a = common.remove_instance(a, [actions.IntrigueAction])
-      if common.include_instance(a, actions.ForbidMovement):
-        a = common.remove_instance(a, [actions.MovementAction])
-      if common.include_instance(a, actions.ForbidGoodwill):
-        a = common.remove_instance(a, [actions.GoodwillAction])
-      if common.include_instance(a, actions.ForbidParanoia):
-        a = common.remove_instance(a, [actions.ParanoiaAction])
-      return a
 
     for p in self.places:
       a = [x[1] for x in filter(lambda x:x[0] == (consts.to_place, p._id), actions_on_board)]
       for x in a:
         x.consume()
-      a = remove_forbidden_actions(a)
       p.apply_actions(a)
 
     for c in self.characters:
       a = [x[1] for x in filter(lambda x:x[0] == (consts.to_character, c._id), actions_on_board)]
       for x in a:
         x.consume()
-      a = remove_forbidden_actions(a)
       c.apply_actions(a)
     exit(1)
 

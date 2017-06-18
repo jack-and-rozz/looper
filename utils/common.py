@@ -21,6 +21,8 @@ class SuperSyntaxSugarMeta(type):
 #        List
 ############################################
 
+def select_instance(l, c_list):
+  return [x for x in l if True in [isinstance(x, c) for c in c_list]]
 def remove_instance(l, c_list):
   return [x for x in l if not True in [isinstance(x, c) for c in c_list]]
 def include_instance(l, c):

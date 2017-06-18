@@ -26,6 +26,9 @@ class CharacterBase(object):
   def apply_actions(self, actions):
     if not actions:
       return
+    actions = acts.remove_forbidden_actions(actions)
+    for a in [a for a in common.select_instance(actions, [acts.IntrigueAction])]:
+      a(self)
 
   def move(self, direction):
     if isinstance(self.position, places.Hospital):

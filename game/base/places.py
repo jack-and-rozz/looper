@@ -1,6 +1,7 @@
 #coding: utf-8
 from collections import OrderedDict
 from utils import common
+from game.base import acts
 
 class PlaceBase(object):
   __metaclass__ = common.SuperSyntaxSugarMeta
@@ -8,10 +9,15 @@ class PlaceBase(object):
     self.counters = []
     self.classname = self.__class__.__name__
     self.noeffect_actions = []
+    self.intrigue = 0
 
   def apply_actions(self, actions):
     if not actions:
       return
+    actions = acts.remove_forbidden_actions(actions)
+    # TODO: 幻想がいる場合
+    for a in [a for a in common.select_instance(actions, [acts.IntrigueAction])]:
+      a(self)
 
 class Hospital(PlaceBase):
   def __init__(self):
