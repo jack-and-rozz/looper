@@ -7,6 +7,8 @@ class PlaceBase(object):
   def __init__(self):
     self.counters = []
     self.classname = self.__class__.__name__
+    self.noeffect_actions = []
+
   def apply_actions(self, actions):
     if not actions:
       return

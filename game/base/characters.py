@@ -27,6 +27,16 @@ class CharacterBase(object):
     if not actions:
       return
 
+  def move(self, direction):
+    if isinstance(self.position, places.Hospital):
+      pass
+    elif isinstance(self.position, places.Shrine):
+      pass
+    elif isinstance(self.position, places.City):
+      pass
+    elif isinstance(self.position, places.School):
+      pass
+
 class BoyStudent(CharacterBase):
   def __init__(self):
     super(self.__class__, self).__init__()

@@ -55,7 +55,7 @@ class GameManager(object):
     self.writer = getattr(players, self.scenerio.writer)()
     self.board = Board(self.scenerio, loop, self.actors, self.writer, self.board)
     #self.board.show_as_text()
-    return self.board.get_state()
+    #return self.board.get_state()
 
 
     self.board.pre_loop(self.writer, self.actors[self.leader])

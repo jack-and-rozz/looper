@@ -18,6 +18,15 @@ class SuperSyntaxSugarMeta(type):
 
 
 ############################################
+#        List
+############################################
+
+def remove_instance(l, c_list):
+  return [x for x in l if not True in [isinstance(x, c) for c in c_list]]
+def include_instance(l, c):
+  return True if True in [isinstance(x, c) for x in l] else False
+
+############################################
 #        Dictionary
 ############################################
 
@@ -67,6 +76,10 @@ def dict_print(d, indent=0):
 # dictionaryのkey:value入れ替え
 def invert_dict(dictionary):
   return {v:k for k, v in dictionary.items()}
+
+
+
+
 
 # # 辞書のvalueでソート。デフォルトは降順
 # def sort_dict(dic, sort_type="DESC"):

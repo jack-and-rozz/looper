@@ -43,7 +43,7 @@ class Writer(PlayerBase):
       act.MoveUp(), act.MoveDown(), act.MoveLeft(), act.MoveRight(),
       act.MoveCross(), act.PlusOneParanoia(n_cards=2),
       act.MinusOneParanoia(), act.PlusOneIntrigue(),
-      act.PlusTwoIntrigue(), act.ForbidGoodwill(), act.ForbidParanoir()
+      act.PlusTwoIntrigue(), act.ForbidGoodwill(), act.ForbidParanoia()
     ]
     self.actions = InstanceManager(act.name_to_class, self.actions)
 

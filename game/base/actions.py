@@ -13,68 +13,81 @@ class ActionBase(object):
       self.n_available -= 1
       if self.n_available <= 0:
         self.available = False
-  
-class MoveUp(ActionBase):
+
+  def __call__(self, target):
+    return
+
+class GoodwillAction(ActionBase):
+  __metaclass__ = common.SuperSyntaxSugarMeta
+
+class IntrigueAction(ActionBase):
+  __metaclass__ = common.SuperSyntaxSugarMeta
+
+class ParanoiaAction(ActionBase):
+  __metaclass__ = common.SuperSyntaxSugarMeta
+
+class MovementAction(ActionBase):
+  __metaclass__ = common.SuperSyntaxSugarMeta
+
+class ForbidMovement(MovementAction):
+  def __init__(self):
+    self.__super.__init__(n_available=1)
+
+class MoveUp(MovementAction):
   def __init__(self):
     self.__super.__init__()
 
-class MoveDown(ActionBase):
+class MoveDown(MovementAction):
   def __init__(self):
     self.__super.__init__()
 
-class MoveLeft(ActionBase):
+class MoveLeft(MovementAction):
   def __init__(self):
     self.__super.__init__()
 
-class MoveRight(ActionBase):
+class MoveRight(MovementAction):
   def __init__(self):
     self.__super.__init__()
 
-class PlusOneGoodwill(ActionBase):
+class MoveCross(MovementAction):
   def __init__(self):
-    self.__super.__init__()
+    self.__super.__init__(n_available=1)
 
-class PlusOneParanoia(ActionBase):
+class PlusOneParanoia(ParanoiaAction):
   def __init__(self, n_cards=1):
     self.__super.__init__(n_cards=n_cards)
 
-class MinusOneParanoia(ActionBase):
+class MinusOneParanoia(ParanoiaAction):
   def __init__(self, n_available=None):
     self.__super.__init__(n_available=n_available)
 
-class PlusTwoGoodwill(ActionBase):
-  def __init__(self):
-    self.__super.__init__(n_available=1)
-
-
-class ForbidIntrigue(ActionBase):
+class ForbidParanoia(ParanoiaAction):
   def __init__(self):
     self.__super.__init__()
 
-class ForbidMovement(ActionBase):
-  def __init__(self):
-    self.__super.__init__(n_available=1)
-
-class MoveCross(ActionBase):
-  def __init__(self):
-    self.__super.__init__(n_available=1)
-
-class ForbidGoodwill(ActionBase):
+class PlusOneGoodwill(GoodwillAction):
   def __init__(self):
     self.__super.__init__()
 
-class ForbidParanoir(ActionBase):
-  def __init__(self):
-    self.__super.__init__()
-
-class PlusOneIntrigue(ActionBase):
-  def __init__(self):
-    self.__super.__init__()
-
-class PlusTwoIntrigue(ActionBase):
+class PlusTwoGoodwill(GoodwillAction):
   def __init__(self):
     self.__super.__init__(n_available=1)
 
+class ForbidGoodwill(GoodwillAction):
+  def __init__(self):
+    self.__super.__init__()
+
+class PlusOneIntrigue(IntrigueAction):
+  def __init__(self):
+    self.__super.__init__()
+
+class PlusTwoIntrigue(IntrigueAction):
+  def __init__(self):
+    self.__super.__init__(n_available=1)
+
+class ForbidIntrigue(IntrigueAction):
+  def __init__(self):
+    self.__super.__init__()
 
 name_to_class = OrderedDict((
   ('移動上', MoveUp),
@@ -89,7 +102,7 @@ name_to_class = OrderedDict((
   ('暗躍+1', PlusOneIntrigue),
   ('暗躍+2', PlusTwoIntrigue),
   ('友好禁止', ForbidGoodwill),
-  ('不安禁止', ForbidParanoir),
+  ('不安禁止', ForbidParanoia),
   ('暗躍禁止', ForbidIntrigue),
   ('移動禁止', ForbidMovement),
 ))
