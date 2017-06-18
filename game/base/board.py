@@ -117,14 +117,14 @@ class Board(object):
     print ("Loop: %d" % self.loop)
     print ("Day : %d" % self.day)
 
-    header = ['<Place>', '<Intrigue>', '<Paranoia>', '<Goodwill>']
-    data = [[p.classname, p.intrigue, p.paranoia, p.goodwill] for p in self.places]
+    header = ['<Place>', '<Intrigue>',]
+    data = [[p.classname, p.intrigue] for p in self.places]
     df = DataFrame(data, columns=header, index=[p._id for p in self.places])
     print df
     print ''
 
-    header = ['<Character>', '<Role>', '<Position>', '<Intrigue>']
-    data = [[character.classname, character.role.classname, character.position.classname, character.intrigue] for character in self.characters]
+    header = ['<Character>', '<Role>', '<Position>', '<Intrigue>', '<Goodwill>', '<Paranoia>']
+    data = [[character.classname, character.role.classname, character.position.classname, character.intrigue, character.goodwill, character.paranoia] for character in self.characters]
     df = DataFrame(data, columns=header, index=[c._id for c in self.characters])
     print df
   
