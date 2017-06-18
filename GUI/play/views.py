@@ -9,6 +9,7 @@ from main import game
 
 def index(request):
     template = loader.get_template('play/index.html')
+    print 
     state = game().start_game()
 
 

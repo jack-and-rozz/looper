@@ -1,8 +1,8 @@
+{% load static %}
 <ul>
     {% for c in state.characters.ids %}
         <li><a href="/polls/{{c}}/">{{c }}</a></li>
     {% endfor %}
 </ul>
 
-{% load static %}
 <img src="{% static "graphics/chara_cards/chara_cards_01_01.png" %}" alt="My image"/>
