@@ -18,6 +18,9 @@ class ActionBase(object):
   def __call__(self, target):
     return
 
+class Pass(ActionBase):
+  pass
+
 class GoodwillAction(ActionBase):
   __metaclass__ = common.SuperSyntaxSugarMeta
 
@@ -95,7 +98,6 @@ class PlusTwoGoodwill(GoodwillAction):
     self.__super.__init__(n_available=1)
   def __call__(self, target):
     target.goodwill += 2
-
 
 class ForbidGoodwill(GoodwillAction):
   def __init__(self):

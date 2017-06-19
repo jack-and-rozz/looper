@@ -11,8 +11,10 @@ counters = ['Paranoia', 'Goodwill', 'Intrigue']
 counters = common.to_ids(counters, start=1)
 
 Unknown = 0
-to_place = 1
-to_character = 2
+Place = 1
+Character = 2
+#Role = 3
+#Rule = 4
 
 
 CharacterInfo = {

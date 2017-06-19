@@ -4,6 +4,7 @@ from utils import common
 from game.base import places as places_lib
 from game.base import consts
 from game.base import actions as actions_lib
+from game.base import character_abillities as cabi_lib
 from game.base.consts import character_properties as cprop
 
 class CharacterBase(object):
@@ -49,73 +50,104 @@ class CharacterBase(object):
     ]
     direction = (0, 0)
     for a in [a for a in common.select_instance(actions, move_action_types)]:
-      direction += a(self)
+      direction = [d1 + d2 for d1, d2 in zip(direction, a(self))]
     self.move(direction, places)
 
   def move(self, direction, places):
+    new_position = None
     if isinstance(self.position, places_lib.Hospital):
-      pass
+      if direction[0] > 0:
+        if direction[1] < 0:
+          new_position = places.get(places_lib.School)
+        else:
+          new_position = places.get(places_lib.Shrine)
+      elif direction[1] < 0:
+        new_position = places.get(places_lib.City)
+
     elif isinstance(self.position, places_lib.Shrine):
-      pass
+      if direction[0] < 0:
+        if direction[1] < 0:
+          new_position = places.get(places_lib.City)
+        else:
+          new_position = places.get(places_lib.Hospital)
+      elif direction[1] < 0:
+        new_position = places.get(places_lib.School)
+
     elif isinstance(self.position, places_lib.City):
-      pass
+      if direction[0] > 0:
+        if direction[1] > 0:
+          new_position = places.get(places_lib.Shrine)
+        else:
+          new_position = places.get(places_lib.School)
+      elif direction[1] > 0:
+        new_position = places.get(places_lib.Hospital)
     elif isinstance(self.position, places_lib.School):
-      pass
+      if direction[0] < 0:
+        if direction[1] > 0:
+          new_position = places.get(places_lib.Hospital)
+        else:
+          new_position = places.get(places_lib.City)
+      elif direction[1] > 0:
+        new_position = places.get(places_lib.Shrine)
+    if new_position and places.get_class(new_position) not in self.keepout:
+      self.position = new_position
 
 class BoyStudent(CharacterBase):
   def __init__(self):
     super(self.__class__, self).__init__()
     self.paranoia_limit = 2
-    self.init_position = '学校'
+    self.init_position = places_lib.School
     self.prop = [cprop.Student, cprop.Boy]
 
 class GirlStudent(CharacterBase):
   def __init__(self):
     super(self.__class__, self).__init__()
     self.paranoia_limit = 3
-    self.init_position = '学校'
+    self.init_position = places_lib.School
     self.prop = [cprop.Student, cprop.Girl]
 
 class RichMansDaughter(CharacterBase):
   def __init__(self):
     super(self.__class__, self).__init__()
     self.paranoia_limit = 1
-    self.init_position = '学校'
+    self.init_position = places_lib.School
     self.prop = [cprop.Student, cprop.Girl]
 
 class ClassRep(CharacterBase):
   def __init__(self):
     super(self.__class__, self).__init__()
     self.paranoia_limit = 2
-    self.init_position = '学校'
+    self.init_position = places_lib.School
     self.prop = [cprop.Student, cprop.Girl]
 
 class MysteryBoy(CharacterBase):
   def __init__(self):
     super(self.__class__, self).__init__()
     self.paranoia_limit = 3
-    self.init_position = '学校'
+    self.init_position = places_lib.School
     self.prop = [cprop.Student, cprop.Boy]
 
 class ShrineMaiden(CharacterBase):
   def __init__(self):
     super(self.__class__, self).__init__()
     self.paranoia_limit = 2
-    self.init_position = '神社'
+    self.init_position = places_lib.Shrine
     self.prop = [cprop.Student, cprop.Girl]
+    self.keepout = [places_lib.City]
 
 class Alien(CharacterBase):
   def __init__(self):
      super(self.__class__, self).__init__()
      self.paranoia_limit = 3
-     self.init_position = '神社'
+     self.init_position = places_lib.Shrine
      self.prop = [cprop.Girl]
+     self.keepout = [places_lib.Hospital]
 
 class GodlyBeing(CharacterBase):
   def __init__(self, appearing_day):
      super(self.__class__, self).__init__()
      self.paranoia_limit = 3
-     self.init_position = '神社'
+     self.init_position = places_lib.Shrine
      self.appearing_day = appearing_day
      self.prop = [cprop.Male, cprop.Female]
 
@@ -123,70 +155,72 @@ class PoliceOfficer(CharacterBase):
   def __init__(self):
      super(self.__class__, self).__init__()
      self.paranoia_limit = 3
-     self.init_position = '都市'
+     self.init_position = places_lib.City
      self.prop = [cprop.Adult, cprop.Male]
 
 class OfficeWorker(CharacterBase):
   def __init__(self):
      super(self.__class__, self).__init__()
      self.paranoia_limit = 2
-     self.init_position = '都市'
+     self.init_position = places_lib.City
      self.prop = [cprop.Adult, cprop.Male]
+     self.keepout = [places_lib.School]
 
 class Informer(CharacterBase):
   def __init__(self):
      super(self.__class__, self).__init__()
      self.paranoia_limit = 3
-     self.init_position = '都市'
+     self.init_position = places_lib.City
      self.prop = [cprop.Adult, cprop.Female]
 
 class PopIdol(CharacterBase):
   def __init__(self):
      super(self.__class__, self).__init__()
      self.paranoia_limit = 2
-     self.init_position = '都市'
+     self.init_position = places_lib.City
      self.prop = [cprop.Student, cprop.Girl]
 
 class Journalist(CharacterBase):
   def __init__(self):
      super(self.__class__, self).__init__()
      self.paranoia_limit = 2
-     self.init_position = '都市'
+     self.init_position = places_lib.City
      self.prop = [cprop.Adult, cprop.Male]
 
 class Boss(CharacterBase):
   def __init__(self):
      super(self.__class__, self).__init__()
      self.paranoia_limit = 4
-     self.init_position = '都市'
+     self.init_position = places_lib.City
      self.prop = [cprop.Adult, cprop.Male]
 
 class Doctor(CharacterBase):
   def __init__(self):
      super(self.__class__, self).__init__()
      self.paranoia_limit = 2
-     self.init_position = '病院'
+     self.init_position = places_lib.Hospital
      self.prop = [cprop.Adult, cprop.Male]
 
 class Patient(CharacterBase):
   def __init__(self):
      super(self.__class__, self).__init__()
      self.paranoia_limit = 2
-     self.init_position = '病院'
+     self.init_position = places_lib.Hospital
      self.prop = [cprop.Boy]
+     self.keepout = [places_lib.City, places_lib.School, places_lib.Shrine]
 
 class Nurse(CharacterBase):
   def __init__(self):
      super(self.__class__, self).__init__()
      self.paranoia_limit = 3
-     self.init_position = '病院'
+     self.init_position = places_lib.Hospital
      self.prop = [cprop.Adult, cprop.Female]
 
 class HenchMan(CharacterBase):
   def __init__(self):
      super(self.__class__, self).__init__()
      self.paranoia_limit = 1
-     self.init_position = '病院' # (仮)
+     self.init_position = places_lib.Hospital # (仮)
      self.prop = [cprop.Adult, cprop.Male]
 
 name_to_class = OrderedDict((

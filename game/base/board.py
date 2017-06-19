@@ -25,10 +25,12 @@ class State(object):
     self._state = common.dotDict()
     self._state.characters = common.dotDict()
     self._state.places = common.dotDict()
-    self._state.actors_plots = []
+    self._state.plots = common.dotDict()
     self._state.loop = board.loop
     self._state.day = board.day
+    self._state.phase = board.phase
     self._state.ex_gauge = board.ex_gauge
+    
     self.characters.ids = [c._id for c in board.characters]
     self.characters.positions = [c.position._id for c in board.characters]
     self.characters.alive = [c.alive for c in board.characters]
@@ -42,8 +44,33 @@ class State(object):
       self._state.roles = [c.role._id for c in board.characters]
       self._state.rules = [r._id for r in board.rules]
 
-    if board.writers_plots and board.actors_plots:
-      pass
+    if show_plots[0]:
+      self.plots.writer = [(dest, act._id) for dest, act in board.writers_plots]
+    else:
+      self.plots.writer = [(dest, consts.Unknown) for dest, act in board.writers_plots]
+    self.plots.actors = []
+    for i, (dest, act) in enumerate(board.actors_plots):
+      act_id = act._id if show_plots[1][i] else consts.Unknown
+      self.plots.actors.append((dest, act._id))
+
+    self._state.actions = common.dotDict()
+    self.actions.writer = sorted(board.writer.available_actions)
+    self.actions.actors = [a.available_actions for a in board.actors]
+    
+
+  @property
+  def loop(self):
+    return self._state.loop
+
+  def day(self):
+    return self._state.day
+
+  def phase(self):
+    return self._state.phase
+
+  @property
+  def actions(self):
+    return self._state.actions
 
   @property
   def characters(self):
@@ -62,11 +89,8 @@ class State(object):
     return self._state.rules
 
   @property
-  def actors_plots(self):
-    return self._state.actors_plots
-
-  def writer_plots(self):
-    return self._state.writers_plots
+  def plots(self):
+    return self._state.plots
 
   def __str__(self):
     return str(self._state)
@@ -111,6 +135,10 @@ class Board(object):
     self.affairs = InstanceManager(self.expansion.affairs.name_to_class, 
                                    affairs_list)
     self.rules = []
+    self.check_logic_error()
+
+  def check_logic_error(self):
+    return
 
   def show_as_text(self):
     print ('-' * 40)
@@ -128,9 +156,9 @@ class Board(object):
     df = DataFrame(data, columns=header, index=[c._id for c in self.characters])
     print df
   
-  def get_state(self, show_hidden=False, show_plots=True):
+  def get_state(self, show_hidden=False, show_plots=(True, [True, True, True])):
     # show_hidden: 非公開情報を表示するか
-    # show_plots: プロットしたアクション内容を表示するか
+    # show_plots: プロットしたアクション内容を表示するか(Writer, [Actor1, 2, 3])
     state = State(self, show_hidden=show_hidden, show_plots=show_plots)
     return state
 
@@ -162,8 +190,11 @@ class Board(object):
 
   def plot_actor_actions(self, leader_id):
     self.phase = consts.phases.ActorsAction
-    for actor in self.actors:
-      state = self.get_state(show_plots=False)
+    for i, actor in enumerate(self.actors):
+      # プロットしたカードが何かは隠す
+      show_plots = (False, [False, False, False])
+      show_plots[1][i] = True
+      state = self.get_state(show_plots=show_plots)
       action = actor.plot_action(state)
       self.actors_plots.append(action)
 
@@ -180,13 +211,13 @@ class Board(object):
       actions_on_board = [a for a in actions_on_board if not isinstance(a, actions.ForbidIntrigue)]
 
     for p in self.places:
-      a = [x[1] for x in filter(lambda x:x[0] == (consts.to_place, p._id), actions_on_board)]
+      a = [x[1] for x in filter(lambda x:x[0] == (consts.Place, p._id), actions_on_board)]
       for x in a:
         x.consume()
       p.apply_actions(a)
 
     for c in self.characters:
-      a = [x[1] for x in filter(lambda x:x[0] == (consts.to_character, c._id), actions_on_board)]
+      a = [x[1] for x in filter(lambda x:x[0] == (consts.Character, c._id), actions_on_board)]
       for x in a:
         x.consume()
       c.apply_actions(a, self.places)
@@ -196,6 +227,12 @@ class Board(object):
 
   def use_actor_abilities(self, leader_id):
     self.phase = consts.phases.ActorsAbility
+
+    state = self.get_state()
+    plot = self.actors[leader_id].plot_ability(state, None)
+    while plot:
+      state = self.get_state()
+      self.actors[leader_id].plot_ability(state, None)
 
   def process_affairs(self, leader_id):
     self.phase = consts.phases.ProcessAffair

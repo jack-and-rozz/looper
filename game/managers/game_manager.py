@@ -12,6 +12,15 @@ class GameManager(object):
     self.scenerio = self.load_scenerio(scenerio_path)
     self.max_loop = self.scenerio.loop
     self.max_day = self.scenerio.days
+
+  def init_board(self):
+    self.actors = [getattr(players, actor_type)(actor_id) for actor_id, actor_type in enumerate(self.scenerio.actors)]
+    self.writer = getattr(players, self.scenerio.writer)()
+    self.board = Board(self.scenerio, self.loop, 
+                       self.actors, self.writer, self.board)
+    self.board.show_as_text()
+    return self.board.get_state()
+
   def load_scenerio(self, path):
     d = yaml.load(codecs.open(path, 'r', 'utf-8'))
     s = common.unicode_to_str(d, dict_func=collections.OrderedDict)
@@ -23,7 +32,8 @@ class GameManager(object):
 
   def start_game(self):
     for l in xrange(1, self.max_loop):
-      result = self.start_loop(l)
+      self.loop = l
+      result = self.start_loop()
       return result
       if result == True:
         return True
@@ -47,17 +57,11 @@ class GameManager(object):
     # 事件フェイズ
     self.board.process_affairs(self.leader)
     # ターン終了フェイズ
-    self.board.end_day()
+    self.board.end_day(self.writer)
     exit(1)
 
-  def start_loop(self, loop):
-    self.actors = [getattr(players, actor_type)(actor_id) for actor_id, actor_type in enumerate(self.scenerio.actors)]
-    self.writer = getattr(players, self.scenerio.writer)()
-    self.board = Board(self.scenerio, loop, self.actors, self.writer, self.board)
-    self.board.show_as_text()
-    #return self.board.get_state()
-    return self.board.get_state()
-
+  def start_loop(self):
+    self.init_board()
     self.board.pre_loop(self.writer, self.actors[self.leader])
     for d in xrange(1, self.max_day):
       self.day_step()

@@ -12,6 +12,7 @@ class InstanceManager(object):
     self.instance_to_id = OrderedDict({ins:self.class_to_id[ins.__class__] for ins in instances})
     self.id_to_name = common.invert_dict(self.name_to_id)
     self.id_to_instance = common.invert_dict(self.instance_to_id)
+    self.id_to_class = common.invert_dict(self.class_to_id)
     self._itercounter = 0
     for instance in instances:
       instance._id = self.get_id(instance)
@@ -53,5 +54,7 @@ class InstanceManager(object):
   def get(self, key):
     return self.id_to_instance[self.get_id(key)] if self.get_id(key) in self.id_to_instance else None
 
+  def get_class(self, key):
+    return self.id_to_class[self.get_id(key)]
   def include(self, key):
     return True if self.get_id(key) in self.id_to_instance else False

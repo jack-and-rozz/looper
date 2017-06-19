@@ -4,7 +4,6 @@ import sys
 print os.pardir
 sys.path.append('../')
 from main import game
-print game().start_game()
 
 if __name__ == "__main__":
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "looper.settings")
