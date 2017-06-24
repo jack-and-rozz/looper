@@ -1,8 +1,8 @@
 # coding:utf-8
 from collections import OrderedDict
 from utils import common
-from game.base import places as places_lib
 from game.base import consts
+from game.base import places as places_lib
 from game.base import actions as actions_lib
 from game.base import character_abillities as cabi_lib
 from game.base.consts import character_properties as cprop
