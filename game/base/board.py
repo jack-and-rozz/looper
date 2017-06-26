@@ -56,7 +56,6 @@ class State(object):
     self._state.actions = common.dotDict()
     self.actions.writer = sorted(board.writer.available_actions)
     self.actions.actors = [a.available_actions for a in board.actors]
-    
 
   @property
   def loop(self):
@@ -232,10 +231,11 @@ class Board(object):
     plot = self.actors[leader_id].plot_ability(state, None)
     while plot:
       state = self.get_state()
-      self.actors[leader_id].plot_ability(state, None)
+      plot = self.actors[leader_id].plot_ability(state, None)
 
   def process_affairs(self, leader_id):
     self.phase = consts.phases.ProcessAffair
+
 
   def end_day(self, writer):
     self.phase = consts.phases.EndDay

@@ -10,7 +10,7 @@ yaml.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
 
 ROOT_PATH = '/Users/rozz/workspace/working/rooper'
 SCENERIO_PATH = ROOT_PATH + '/scenerios'
-
+sys.path.append(ROOT_PATH)
 
 def game():
   m = GameManager(SCENERIO_PATH + "/sample.yml")
