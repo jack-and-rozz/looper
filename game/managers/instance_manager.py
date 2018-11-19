@@ -1,6 +1,7 @@
 #coding: utf-8
 from collections import OrderedDict
 from utils import common
+from game.base import places, characters, consts, actions
 
 #生成したインスタンスとIDとの関連付け．インスタンスはシングルトンを想定
 class InstanceManager(object):
@@ -17,6 +18,22 @@ class InstanceManager(object):
     for instance in instances:
       instance._id = self.get_id(instance)
       instance.name = self.get_name(instance)
+
+  def info(self):
+    return [x.info for x in self.instances]
+
+  def state(self, show_hidden, as_ids):
+    state = []
+    for x in self.instances:
+      s = x.state(show_hidden, as_ids)
+      if s:
+        state.append(s)
+    return state
+  
+  @property
+  def ids(self):
+    return [x._id for x in self.instances]
+
   @property
   def id_info(self):
     return common.dotDict(
@@ -56,5 +73,9 @@ class InstanceManager(object):
 
   def get_class(self, key):
     return self.id_to_class[self.get_id(key)]
+
   def include(self, key):
     return True if self.get_id(key) in self.id_to_instance else False
+
+  def __getitem__(self, key):
+    return self.get(key)

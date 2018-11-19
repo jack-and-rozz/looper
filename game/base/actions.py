@@ -1,19 +1,35 @@
 # coding:utf-8
 from collections import OrderedDict
-from game.base import consts
+from game.base.consts import instance_types as itypes
 from utils import common
 
 class ActionBase(object):
   __metaclass__ = common.SuperSyntaxSugarMeta
-  def __init__(self, n_cards=1, n_available=None):
+  def __init__(self, n_available=None):
+    self.instance_type = itypes.Action
     self.available = True
     self.n_available = n_available
+    self.classname = self.__class__.__name__
+
+  def state(self, show_hidden, as_ids):
+    state = []
+    state += [
+      ('_id', self._id), 
+      ('name', self.classname),
+      ('available', self.available),
+    ]
+    return OrderedDict(state)
 
   def consume(self):
-    if self.n_available != None:
+    if self.n_available:
       self.n_available -= 1
-      if self.n_available <= 0:
+      if not self.n_available:
         self.available = False
+  
+  def restore(self):
+    self.available = True
+    if self.n_available is not None:
+      self.n_available += 1
 
   def __call__(self, target):
     return
@@ -71,8 +87,8 @@ class MoveCross(MovementAction):
     return (movex, movey)
 
 class PlusOneParanoia(ParanoiaAction):
-  def __init__(self, n_cards=1):
-    self.__super.__init__(n_cards=n_cards)
+  def __init__(self):
+    self.__super.__init__()
   def __call__(self, target):
     target.paranoia += 1
 

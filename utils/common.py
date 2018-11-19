@@ -6,6 +6,7 @@ import numpy as np
 from itertools import chain
 from logging import getLogger, StreamHandler, FileHandler, Formatter, DEBUG, INFO, WARNING, ERROR, CRITICAL
 
+
 ############################################
 #        Inheritance
 ############################################

@@ -1,7 +1,7 @@
 # coding:utf-8
 from utils import common
 
-phases = ['PreLoop', 'WritersAction', 'ActorsAction', 'ProcessAction', 'WritersAbility', 'ActorsAbility', 'ProcessAffair', 'EndDay', 'EndLoop']
+phases = ['PreLoop', 'StartDay', 'WritersPlot', 'ActorsPlot', 'ProcessAction', 'WritersAbility', 'ActorsAbility', 'ProcessAffair', 'EndDay', 'EndLoop']
 phases = common.to_ids(phases, start=1)
 
 character_properties = ['Student', 'Adult', 'Boy', 'Girl', 'Male', 'Female']
@@ -10,11 +10,11 @@ character_properties = common.to_ids(character_properties, start=1)
 counters = ['Paranoia', 'Goodwill', 'Intrigue']
 counters = common.to_ids(counters, start=1)
 
-Unknown = 0
-Place = 1
-Character = 2
-#Role = 3
-#Rule = 4
+instance_types = ['Place', 'Character', 'Role', 'Action', 'Affair', 'RuleY', 'RuleX']
+instance_types = common.to_ids(instance_types, start=1)
+
+Unknown = common.dotDict({'_id': 0, 'classname': 'Unknown'})
+
 
 
 CharacterInfo = {
