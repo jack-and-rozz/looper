@@ -2,7 +2,7 @@
 from collections import OrderedDict
 from utils import common
 from game.base import consts
-from game.base import places as places_lib
+from game.base import locations as locations_lib
 from game.base import actions as actions_lib
 from game.base.character_abilities import *
 from game.base.consts import character_properties as cprops
@@ -10,22 +10,40 @@ from game.base.consts import instance_types as itypes
 from game.base.errors import *
 
 class CharacterBase(object):
-  def __init__(self, board):
+  def __init__(self, board, role):
     self.board = board
+    self.role = role
+    # ゲームを通して固定のパラメータ
     self.instance_type = itypes.Character
     self.classname = self.__class__.__name__
-    self.paranoia = 0 # 不安
-    self.goodwill = 0 # 友好
-    self.intrigue = 0 # 暗躍
+    self.init_location = None
+    self.init_keepout = []
+    self.init_prop = []
     self.abilities = []
-    self.keepout = []
-    self.prop = []
-    self.place = None
-    self.role = None
-    self.role_revealed = False
-    self.alive = True
+    self.bodyguard = False # 刑事の護衛トークン
 
-    # プロット時に乗っているカード
+    # ゲームの中で変更され、ループを通して続くパラメータ
+    self.role_revealed = False
+
+    # ゲームの中で変更され得るが、ループの度にリセットされるパラメータ
+    self.reset()
+
+  def reset(self):
+    self.paranoia = 0
+    self.goodwill = 0
+    self.intrigue = 0
+    self.alive = True
+    self.bodyguard = False
+
+    self.location = self.board.locations[self.init_location]
+    self.keepout = [self.board.locations[l] for l in self.init_keepout]
+    self.prop = [p for p in self.init_prop]
+    self.remove_actions()
+
+    for ability in self.abilities:
+      ability.reset()
+
+  def remove_actions(self):
     self.actors_plot = None
     self.writers_plot = None
 
@@ -37,7 +55,7 @@ class CharacterBase(object):
       #('jname', self.name)
     ]
     state += [
-      ('place', self.place._id if as_ids else self.place.classname),
+      ('location', self.location._id if as_ids else self.location.classname),
       ('alive', self.alive),
       ('paranoia', self.paranoia),
       ('goodwill', self.goodwill),
@@ -60,52 +78,58 @@ class CharacterBase(object):
     ]
     return OrderedDict(state)
 
-  def change_paranoia(self, value):
+  def add_paranoia(self, value):
     self.paranoia = max(0, self.paranoia+value)
 
-  def change_goodwill(self, value):
+  def add_goodwill(self, value):
     self.goodwill = max(0, self.goodwill+value)
 
-  def change_intrigue(self, value):
+  def add_intrigue(self, value):
     self.intrigue = max(0, self.intrigue+value)
+
+  def add_bodyguard(self):
+    self.bodyguard = True
+
+  def remove_bodyguard(self):
+    self.bodyguard = False
 
   def reveal(self):
     #役職判明がトリガーの条件があるためメソッドにする
     self.role_revealed = True
 
   def die(self):
-    if not self.role.immortal:
+    if not self.role.unkillable or self.bodyguard:
       self.alive = False
+    if self.bodyguard:
+      self.remove_bodyguard()
 
   def revive(self):
     self.alive = True
 
-  def is_in(self, place_class):
+  def is_in(self, location_class):
     '''
-    - place: A class.
+    - location: A class.
     '''
-    if not type(place_class) == type:
-      place_class = place_class.__class__
+    if not type(location_class) == type:
+      location_class = location_class.__class__
 
-    return isinstance(self.place, place_class)
+    return isinstance(self.location, location_class)
 
-  def is_in_the_same_place(self, target):
+  def is_in_the_same_location(self, target):
     if target.instance_type == itypes.Character:
-      return self.place == target.place
-    elif target.instance_type == itypes.Place:
-      return self.place == target
+      return self.location == target.location
+    elif target.instance_type == itypes.Location:
+      return self.location == target
     else:
-      raise InvalidTargetError('This method must be called with Character or Place.')
+      return True
+      #raise InvalidTargetError('This method must be called with Character or Location.')
 
   def has_prop(self, prop):
     return prop in self.prop
 
-  def set_role(self, role):
-    self.role = role
-
-  def set_place(self, place):
-    if not place in self.keepout:
-      self.place = place
+  def set_location(self, location):
+    if not location in self.keepout:
+      self.location = location
 
   def apply_actions(self, actions):
     if not actions:
@@ -132,46 +156,46 @@ class CharacterBase(object):
     direction = (0, 0)
     for a in [a for a in common.select_instance(actions, move_action_types)]:
       direction = [d1 + d2 for d1, d2 in zip(direction, a(self))]
-    self.move(direction, self.board.places)
+    self.move(direction, self.board.locations)
 
-  def move(self, direction, places):
-    new_place = None
-    if isinstance(self.place, places_lib.Hospital):
+  def move(self, direction, locations):
+    new_location = None
+    if isinstance(self.location, locations_lib.Hospital):
       if direction[0] > 0:
         if direction[1] < 0:
-          new_place = places.get(places_lib.School)
+          new_location = locations.get(locations_lib.School)
         else:
-          new_place = places.get(places_lib.Shrine)
+          new_location = locations.get(locations_lib.Shrine)
       elif direction[1] < 0:
-        new_place = places.get(places_lib.City)
+        new_location = locations.get(locations_lib.City)
 
-    elif isinstance(self.place, places_lib.Shrine):
+    elif isinstance(self.location, locations_lib.Shrine):
       if direction[0] < 0:
         if direction[1] < 0:
-          new_place = places.get(places_lib.City)
+          new_location = locations.get(locations_lib.City)
         else:
-          new_place = places.get(places_lib.Hospital)
+          new_location = locations.get(locations_lib.Hospital)
       elif direction[1] < 0:
-        new_place = places.get(places_lib.School)
+        new_location = locations.get(locations_lib.School)
 
-    elif isinstance(self.place, places_lib.City):
+    elif isinstance(self.location, locations_lib.City):
       if direction[0] > 0:
         if direction[1] > 0:
-          new_place = places.get(places_lib.Shrine)
+          new_location = locations.get(locations_lib.Shrine)
         else:
-          new_place = places.get(places_lib.School)
+          new_location = locations.get(locations_lib.School)
       elif direction[1] > 0:
-        new_place = places.get(places_lib.Hospital)
-    elif isinstance(self.place, places_lib.School):
+        new_location = locations.get(locations_lib.Hospital)
+    elif isinstance(self.location, locations_lib.School):
       if direction[0] < 0:
         if direction[1] > 0:
-          new_place = places.get(places_lib.Hospital)
+          new_location = locations.get(locations_lib.Hospital)
         else:
-          new_place = places.get(places_lib.City)
+          new_location = locations.get(locations_lib.City)
       elif direction[1] > 0:
-        new_place = places.get(places_lib.Shrine)
-    if new_place and places.get_class(new_place) not in self.keepout:
-      self.place = new_place
+        new_location = locations.get(locations_lib.Shrine)
+    if new_location and locations.get_class(new_location) not in self.keepout:
+      self.location = new_location
 
 
 class BoyStudent(CharacterBase):
@@ -179,65 +203,65 @@ class BoyStudent(CharacterBase):
     super(self.__class__, self).__init__(*args)
     self.abilities = [BoyStudentAbility(self)]
     self.paranoia_limit = 2
-    self.init_place = places_lib.School
-    self.prop = [cprops.Student, cprops.Boy]
+    self.init_location = locations_lib.School
+    self.init_prop = [cprops.Student, cprops.Boy]
 
 class GirlStudent(CharacterBase):
   def __init__(self, *args):
     super(self.__class__, self).__init__(*args)
     self.abilities = [GirlStudentAbility(self)]
     self.paranoia_limit = 3
-    self.init_place = places_lib.School
-    self.prop = [cprops.Student, cprops.Girl]
+    self.init_location = locations_lib.School
+    self.init_prop = [cprops.Student, cprops.Girl]
 
 class RichMansDaughter(CharacterBase):
   def __init__(self, *args):
     super(self.__class__, self).__init__(*args)
     self.abilities = [RichMansDaughterAbility(self)]
     self.paranoia_limit = 1
-    self.init_place = places_lib.School
-    self.prop = [cprops.Student, cprops.Girl]
+    self.init_location = locations_lib.School
+    self.init_prop = [cprops.Student, cprops.Girl]
 
 class ClassRep(CharacterBase):
   def __init__(self, *args):
     super(self.__class__, self).__init__(*args)
     self.abilities = [ClassRepAbility(self)]
     self.paranoia_limit = 2
-    self.init_place = places_lib.School
-    self.prop = [cprops.Student, cprops.Girl]
+    self.init_location = locations_lib.School
+    self.init_prop = [cprops.Student, cprops.Girl]
 
 class MysteryBoy(CharacterBase):
   def __init__(self, *args):
     super(self.__class__, self).__init__(*args)
     self.abilities = [MysteryBoyAbility(self)]
     self.paranoia_limit = 3
-    self.init_place = places_lib.School
-    self.prop = [cprops.Student, cprops.Boy]
+    self.init_location = locations_lib.School
+    self.init_prop = [cprops.Student, cprops.Boy]
 
 class ShrineMaiden(CharacterBase):
   def __init__(self, *args):
     super(self.__class__, self).__init__(*args)
     self.abilities = [ShrineMaidenAbility(self), ShrineMaidenAbility2(self)]
     self.paranoia_limit = 2
-    self.init_place = places_lib.Shrine
-    self.prop = [cprops.Student, cprops.Girl]
-    self.keepout = [places_lib.City]
+    self.init_location = locations_lib.Shrine
+    self.init_prop = [cprops.Student, cprops.Girl]
+    self.init_keepout = [locations_lib.City]
 
 class Alien(CharacterBase):
   def __init__(self, *args):
     super(self.__class__, self).__init__(*args)
     self.abilities = [AlienAbility(self), AlienAbility2(self)]
     self.paranoia_limit = 3
-    self.init_place = places_lib.Shrine
-    self.prop = [cprops.Girl]
-    self.keepout = [places_lib.Hospital]
+    self.init_location = locations_lib.Shrine
+    self.init_prop = [cprops.Girl]
+    self.init_keepout = [locations_lib.Hospital]
 
 # class GodlyBeing(CharacterBase):
 #   def __init__(self, appearing_day):
 #     super(self.__class__, self).__init__(*args)
 #     self.paranoia_limit = 3
-#     self.init_place = places_lib.Shrine
-#     self.prop = [cprops.Male, cprops.Female]
+#     self.init_location = locations_lib.Shrine
+#     self.init_prop = [cprops.Male, cprops.Female]
 #     self.appearing_day = appearing_day
 
 class PoliceOfficer(CharacterBase):
@@ -245,33 +269,33 @@ class PoliceOfficer(CharacterBase):
     super(self.__class__, self).__init__(*args)
     self.abilities = [PoliceOfficerAbility(self), PoliceOfficerAbility2(self)]
     self.paranoia_limit = 3
-    self.init_place = places_lib.City
-    self.prop = [cprops.Adult, cprops.Male]
+    self.init_location = locations_lib.City
+    self.init_prop = [cprops.Adult, cprops.Male]
 
 class OfficeWorker(CharacterBase):
   def __init__(self, *args):
     super(self.__class__, self).__init__(*args)
     self.abilities = [OfficeWorkerAbility(self)]
     self.paranoia_limit = 2
-    self.init_place = places_lib.City
-    self.prop = [cprops.Adult, cprops.Male]
-    self.keepout = [places_lib.School]
+    self.init_location = locations_lib.City
+    self.init_prop = [cprops.Adult, cprops.Male]
+    self.init_keepout = [locations_lib.School]
 
 class Informer(CharacterBase):
   def __init__(self, *args):
     super(self.__class__, self).__init__(*args)
     self.abilities = [InformerAbility(self)]
     self.paranoia_limit = 3
-    self.init_place = places_lib.City
-    self.prop = [cprops.Adult, cprops.Female]
+    self.init_location = locations_lib.City
+    self.init_prop = [cprops.Adult, cprops.Female]
 
 class PopIdol(CharacterBase):
   def __init__(self, *args):
     super(self.__class__, self).__init__(*args)
     self.abilities = [PopIdolAbility(self), PopIdolAbility2(self)]
     self.paranoia_limit = 2
-    self.init_place = places_lib.City
-    self.prop = [cprops.Student, cprops.Girl]
+    self.init_location = locations_lib.City
+    self.init_prop = [cprops.Student, cprops.Girl]
 
 class Journalist(CharacterBase):
   def __init__(self, *args):
@@ -279,48 +303,48 @@ class Journalist(CharacterBase):
     self.abilities = [JournalistAbility(self), JournalistAbility2(self)]
 
     self.paranoia_limit = 2
-    self.init_place = places_lib.City
-    self.prop = [cprops.Adult, cprops.Male]
+    self.init_location = locations_lib.City
+    self.init_prop = [cprops.Adult, cprops.Male]
 
 class Boss(CharacterBase):
   def __init__(self, *args):
     super(self.__class__, self).__init__(*args)
     self.abilities = [BossAbility(self)]
     self.paranoia_limit = 4
-    self.init_place = places_lib.City
-    self.prop = [cprops.Adult, cprops.Male]
-    self.territory = None
+    self.init_location = locations_lib.City
+    self.init_prop = [cprops.Adult, cprops.Male]
+    self.turf = None
 
 class Doctor(CharacterBase):
   def __init__(self, *args):
     super(self.__class__, self).__init__(*args)
     self.abilities = [DoctorAbility(self), DoctorAbility2(self)]
     self.paranoia_limit = 2
-    self.init_place = places_lib.Hospital
-    self.prop = [cprops.Adult, cprops.Male]
+    self.init_location = locations_lib.Hospital
+    self.init_prop = [cprops.Adult, cprops.Male]
 
 class Patient(CharacterBase):
   def __init__(self, *args):
     super(self.__class__, self).__init__(*args)
     self.paranoia_limit = 2
-    self.init_place = places_lib.Hospital
-    self.prop = [cprops.Boy]
-    self.keepout = [places_lib.City, places_lib.School, places_lib.Shrine]
-
+    self.init_location = locations_lib.Hospital
+    self.init_keepout = [locations_lib.City, locations_lib.School, locations_lib.Shrine]
+    self.init_prop = [cprops.Boy]
+  
 class Nurse(CharacterBase):
   def __init__(self, *args):
     super(self.__class__, self).__init__(*args)
     self.abilities = [NurseAbility(self)]
     self.paranoia_limit = 3
-    self.init_place = places_lib.Hospital
-    self.prop = [cprops.Adult, cprops.Female]
+    self.init_location = locations_lib.Hospital
+    self.init_prop = [cprops.Adult, cprops.Female]
 
 # class HenchMan(CharacterBase):
 #   def __init__(self, *args):
 #     super(self.__class__, self).__init__(*args)
 #     self.paranoia_limit = 1
-#     self.init_place = None
-#     self.prop = [cprops.Adult, cprops.Male]
+#     self.init_location = None
+#     self.init_prop = [cprops.Adult, cprops.Male]
 
 name_to_class = OrderedDict((
   ('男子学生', BoyStudent),

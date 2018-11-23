@@ -1,8 +1,9 @@
 # coding:utf-8
-import codecs, yaml, collections
+import collections
 from utils import common
 import pandas as pd
 
+from scenerios.scenerios import load_scenerio
 from game.base.board import Board
 import game.base.players as players
 
@@ -14,7 +15,7 @@ class GameManager(object):
     self.board = None
     self.leader = 0
     self.loop = 1
-    self.scenerio = self.load_scenerio(scenerio_path)
+    self.scenerio = load_scenerio(scenerio_path)
     self.max_loop = self.scenerio.loop
     self.max_day = self.scenerio.days
 
@@ -23,27 +24,29 @@ class GameManager(object):
     self.writer = getattr(players, self.scenerio.writer)()
     self.board = Board(self.scenerio, self.loop, 
                        self.actors, self.writer, self.board)
-    self.show_as_text(self.board, show_hidden=True, as_ids=True)
+    self.show_as_text(self.board, show_hidden=True)
     return self.board.get_state(show_hidden=False)
 
-  def load_scenerio(self, path):
-    d = yaml.load(codecs.open(path, 'r', 'utf-8'))
-    s = common.unicode_to_str(d, dict_func=collections.OrderedDict)
-    scenerio = common.dotDict(s)
-    return scenerio
+  # def load_scenerio(self, path):
+  #   d = yaml.load(codecs.open(path, 'r', 'utf-8'))
+  #   s = common.unicode_to_str(d, dict_func=collections.OrderedDict)
+  #   scenerio = common.dotDict(s)
+  #   return scenerio
 
-  def show_as_text(self, board, show_hidden, as_ids):
+  def show_as_text(self, board, show_hidden, as_ids=False):
+    pd.set_option('display.width', 120)
     print ('-' * 40)
     print('========== Game ============')
     print ("Loop: %d" % board.loop,
            "Day : %d" % board.day,
            "Phase: %d" % board.phase,
            "Ex: %d" % board.ex_gauge)
-    pd.set_option('display.width', 120)
+    for idx, rule in zip(['Y', 'X1', 'X2'], board.rules):
+      print ("Rule %s:" % idx, rule.classname)
 
-    print('========== Place ============')
-    header = list(board.places.state(show_hidden, as_ids)[0].keys())
-    data = [[values for keys, values in x.items()] for x in board.places.state(show_hidden, as_ids)] 
+    print('========== Locations ============')
+    header = list(board.locations.state(show_hidden, as_ids)[0].keys())
+    data = [[values for keys, values in x.items()] for x in board.locations.state(show_hidden, as_ids)] 
     df = pd.DataFrame(data, columns=header).set_index(header[0])
     print(df)
     print('')

@@ -1,5 +1,6 @@
 # http://bakafire.main.jp/rooper/pdf/toukou_001.pdf
 
+title: サンプルシナリオ1
 expansion: btx
 loop: 3
 days: 8
@@ -31,7 +32,8 @@ affairs:
     - 殺人事件
     - 情報屋
 
-godly_being_day: 0 #神格が登場するならその日を入力
+options:
+  - godly_being_day: null 
 
 actors:
   - RandomActor

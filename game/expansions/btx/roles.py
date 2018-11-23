@@ -2,6 +2,7 @@
 from collections import OrderedDict
 from utils import common
 from game.base.roles import RoleBase
+from game.expansions.btx.role_abilities import *
 
 class Person(RoleBase):
   def __init__(self, *args):
@@ -15,21 +16,28 @@ class Killer(RoleBase):
   def __init__(self, *args):
     super(self.__class__, self).__init__(*args)
     self.ign_friend = True
+    self.abilities = [
+      KillerAbility(self.board, self.character),
+      KillerAbility2(self.board, self.character),
+    ]
 
 class Brain(RoleBase):
   def __init__(self, *args):
     super(self.__class__, self).__init__(*args)
     self.ign_friend = True
+    self.abilities = [BrainAbility(self.board, self.character)]
 
 class Cultist(RoleBase):
   def __init__(self, *args):
     super(self.__class__, self).__init__(*args)
     self.ign_friend_abs = True
+    self.abilities = [CultistAbility(self.board, self.character)]
 
 class TimeTraveler(RoleBase):
   def __init__(self, *args):
     super(self.__class__, self).__init__(*args)
-    self.immortal = True
+    self.unkillable = True
+    self.abilities = [TimeTravelerAbility(self.board, self.character)]
 
 class Witch(RoleBase):
   def __init__(self, *args):
@@ -40,17 +48,21 @@ class Friend(RoleBase):
   def __init__(self, *args):
     super(self.__class__, self).__init__(*args)
     self.limit = 2
+    self.abilities = [
+      FriendAbility(self.board, self.character),
+      FriendAbility2(self.board, self.character),
+    ]
 
-class Misleader(RoleBase):
+class ConspiracyTheorist(RoleBase):
   def __init__(self, *args):
     super(self.__class__, self).__init__(*args)
     self.limit = 1
 
-class Lovers(RoleBase):
+class Lover(RoleBase):
   def __init__(self, *args):
     super(self.__class__, self).__init__(*args)
 
-class MainLovers(RoleBase):
+class LovedOne(RoleBase):
   def __init__(self, *args):
     super(self.__class__, self).__init__(*args)
 
@@ -73,9 +85,9 @@ name_to_class = OrderedDict([
   ('タイムトラベラー', TimeTraveler),
   ('ウィッチ', Witch),
   ('フレンド', Friend),
-  ('ミスリーダー', Misleader),
-  ('ラバーズ', Lovers),
-  ('メインラバーズ', MainLovers),
+  ('ミスリーダー', ConspiracyTheorist),
+  ('ラバーズ', LovedOne),
+  ('メインラバーズ', Lover),
   ('シリアルキラー', SerialKiller),
   ('ファクター', Factor),
 ])

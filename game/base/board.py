@@ -2,7 +2,7 @@
 import importlib, json
 
 from utils import common
-from game.base import places, characters, consts, actions
+from game.base import locations, characters, consts, actions
 from game.managers.instance_manager import *#InstanceManager, CharacterManager
 import game.expansions as expansions
 
@@ -21,7 +21,7 @@ import game.expansions as expansions
 #   def __init__(self, board):
 #     self._summary = common.dotDict()
 #     self._summary.characters = board.characters.info(show_hidden)
-#     self._summary.places = board.places.info(show_hidden)
+#     self._summary.locations = board.locations.info(show_hidden)
 #     self._summary.affairs = board.affairs.info(show_hidden)
     
 
@@ -38,8 +38,9 @@ class State(object):
     self._state.phase = board.phase
     self._state.ex_gauge = board.ex_gauge
 
+    self._state.rules = board.rules.state(show_hidden, as_ids)
     self._state.characters = board.characters.state(show_hidden, as_ids)
-    self._state.places = board.places.state(show_hidden, as_ids)
+    self._state.locations = board.locations.state(show_hidden, as_ids)
     self._state.affairs = board.affairs.state(show_hidden, as_ids)
 
     self._state.actors = [actor.state(show_hidden, as_ids) for actor in board.actors]
@@ -80,8 +81,8 @@ class State(object):
     return self._state.characters
 
   @property
-  def places(self):
-    return self._state.places
+  def locations(self):
+    return self._state.locations
 
   @property
   def roles(self):
@@ -101,17 +102,20 @@ class State(object):
 class Board(object):
   def __init__(self, scenerio, loop, actors, writer, prev_board=None):
     self.scenerio = scenerio
+    self.max_loops = scenerio.loop
     self.loop = loop
+    self.max_days = scenerio.days
+    self.day = 1
     self.actors = actors
     self.writer = writer
-    self.actors_plots = [] #[((0 or 1, dest_id), action_id), ...]
-    self.writers_plots = [] #[((0 or 1, dest_id), action_id), ...]
-    self.day = 1
+    # self.actors_plots = [] #[((0 or 1, dest_id), action_id), ...]
+    # self.writers_plots = [] #[((0 or 1, dest_id), action_id), ...]
     self.phase = consts.phases.PreLoop
     self.ex_gauge = 0
+    self.defeat = False
     self.expansion = importlib.import_module('game.expansions.' + scenerio.expansion)
-    places_list = [p() for _, p in places.name_to_class.items()]
-    self.places = InstanceManager(places.name_to_class, places_list)
+    locations_list = [p() for _, p in locations.name_to_class.items()]
+    self.locations = InstanceManager(locations.name_to_class, locations_list)
 
     characters_list = []
     roles_list = []
@@ -119,18 +123,16 @@ class Board(object):
       # if char_name == characters.class_to_name[characters.GodlyBeing]:
       #   character = characters.name_to_class[char_name](scenerio.godly_being_day)
       # else:
-      character = characters.name_to_class[char_name](self)
-      role = self.expansion.roles.name_to_class[role_name](self, character)
-      character.set_role(role)
-      character.set_place(self.places.get(character.init_place))
+      role = self.expansion.roles.name_to_class[role_name](self)
+      character = characters.name_to_class[char_name](self, role)
+      #character.location = self.locations[character.init_location]
+      role.character = character
+      character.reset()
       characters_list.append(character)
       roles_list.append(role)
-    self.characters = InstanceManager(characters.name_to_class, characters_list)
 
-    #roles_list = [r() for _, r in self.expansion.roles.name_to_class.items()]
+    self.characters = InstanceManager(characters.name_to_class, characters_list)
     self.roles = InstanceManager(self.expansion.roles.name_to_class, roles_list)
-    #print(self.roles)
-    #exit(1)
 
     affairs_list = []
     for day, (affair_name, char_name) in scenerio.affairs.items():
@@ -141,15 +143,19 @@ class Board(object):
     self.affairs = InstanceManager(self.expansion.affairs.name_to_class, 
                                    affairs_list)
     rules_list = []
-    # for rule_name in [scenerio.rule_y, scenerio.rule_x1, scenerio.rule_x2]:
-    #   rule = self.expansion.rules.name_to_class[rule_name]()
-    # self.rules =  InstanceManager(self.expansion.rules.name_to_class, 
-    #                               rules_list)
+    for rule_name in [scenerio.rule_y, scenerio.rule_x1, scenerio.rule_x2]:
+      rule = self.expansion.rules.name_to_class[rule_name](self)
+      rules_list.append(rule)
+    self.rules =  InstanceManager(self.expansion.rules.name_to_class, 
+                                  rules_list)
     self.check_logic_error()
+
+  def characters_on_the_location(self, location):
+    return [c for c in self.characters if c.location == location]
 
   def check_logic_error(self):
     return
-  
+
   def get_state(self, show_hidden=True, as_ids=True):
     '''
     変化するものを表示
@@ -164,6 +170,12 @@ class Board(object):
     '''
     return Summary(self)
 
+  ###############################################3
+
+  def kill_players(self):
+    raise NotImplementedError
+
+  
   # @property
   # def id_info(self):
   #   info = common.dotDict()
@@ -174,15 +186,15 @@ class Board(object):
   #   info.writer_actions = self.writer.actions.id_info
   #   info.roles = self.roles.id_info
   #   info.affairs = self.affairs.id_info
-  #   info.places = self.places.id_info
+  #   info.locations = self.locations.id_info
   #   return info
 
   # def pre_loop(self, writer, actor):
   #   self.phase = consts.phases.PreLoop
   #   if self.characters.include(characters.HenchMan):
-  #     place_id = self.writer.plot_henchmans_place(self.get_state())
-  #     place = self.places.get(place_id)
-  #     self.characters.get(characters.HenchMan).set_place(place)
+  #     location_id = self.writer.plot_henchmans_location(self.get_state())
+  #     location = self.locations.get(location_id)
+  #     self.characters.get(characters.HenchMan).set_location(location)
 
   # def plot_writer_actions(self):
   #   self.phase = consts.phases.WritersPlot
@@ -211,8 +223,8 @@ class Board(object):
   #   if duplicated_forbid_intrigue:
   #     ploted_actions = [a for a in ploted_actions if not isinstance(a, actions.ForbidIntrigue)]
 
-  #   # for p in self.places:
-  #   #   a = [x[1] for x in filter(lambda x:x[0] == (consts.Place, p._id), ploted_actions)]
+  #   # for p in self.locations:
+  #   #   a = [x[1] for x in filter(lambda x:x[0] == (consts.Location, p._id), ploted_actions)]
   #   #   for x in a:
   #   #     x.consume()
   #   #   p.apply_actions(a)

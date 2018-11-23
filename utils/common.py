@@ -33,14 +33,49 @@ def include_instance(l, c):
 #        Dictionary
 ############################################
 
-# class dotDict(dict):
-#   __getattr__ = dict.__getitem__
-#   __setattr__ = dict.__setitem__
-#   __delattr__ = dict.__delitem__
 class dotDict(dict):
   __getattr__ = dict.__getitem__
   __setattr__ = dict.__setitem__
   __delattr__ = dict.__delitem__
+
+  '''
+  __getattr__ must be overridden to enable it to apply copy.deepcopy, since the object to be copied has to raise AttributeError instead of KeyError when a key is not in itself. 
+  https://stackoverflow.com/questions/33387801/deep-copy-failure-when-copying-custom-object
+  '''
+  def __getattr__(self, key):
+    if key in self:
+      return self[key]
+    raise AttributeError
+
+class recDotDict(dict):
+  __getattr__ = dict.__getitem__
+  __setattr__ = dict.__setitem__
+  __delattr__ = dict.__delitem__
+  def __init__(self, _dict={}):
+    for k in _dict:
+      if isinstance(_dict[k], dict):
+        _dict[k] = recDotDict(_dict[k])
+      if isinstance(_dict[k], list):
+        for i,x in enumerate(_dict[k]):
+          if isinstance(x, dict):
+            _dict[k][i] = dotDict(x)
+    super(recDotDict, self).__init__(_dict)
+
+  def __getattr__(self, key):
+    if key in self:
+      return self[key]
+    raise AttributeError
+
+class rec_defaultdict(collections.defaultdict):
+  def __init__(self):
+    self.default_factory = type(self)
+
+class recDotDefaultDict(collections.defaultdict):
+  __getattr__ = collections.defaultdict.__getitem__
+  __setattr__ = collections.defaultdict.__setitem__
+  __delattr__ = collections.defaultdict.__delitem__
+  def __init__(self, _=None):
+    super(recDotDefaultDict, self).__init__(recDotDefaultDict)
 
 def to_ids(l,  start=0, dict_func=dotDict):
   return dict_func(zip(l, [i for i in range(start,len(l)+start)]))

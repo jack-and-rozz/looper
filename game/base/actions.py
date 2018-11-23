@@ -26,7 +26,7 @@ class ActionBase(object):
       if not self.n_available:
         self.available = False
   
-  def restore(self):
+  def reset(self):
     self.available = True
     if self.n_available is not None:
       self.n_available += 1

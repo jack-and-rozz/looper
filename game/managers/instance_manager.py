@@ -1,7 +1,6 @@
 #coding: utf-8
 from collections import OrderedDict
 from utils import common
-from game.base import places, characters, consts, actions
 
 #生成したインスタンスとIDとの関連付け．インスタンスはシングルトンを想定
 class InstanceManager(object):
