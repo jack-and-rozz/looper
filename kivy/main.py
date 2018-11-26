@@ -1,16 +1,16 @@
 #-*- coding: utf-8 -*-
-
+from pprint import pprint
 from kivy.core.audio import SoundLoader
 # #sound = SoundLoader.load('sounds/bgm/kamikakushi_loop.mp3')
 #xqsound = SoundLoader.load('/Users/rozz/workspace/working/rooper.bak/kivy/sounds/bgm/senses-circuit/loop_68.wav')
-
 from kivy.config import Config
+
 Config.set('graphics', 'width', '640')
 Config.set('graphics', 'height', '480')
-#WIDTH = 1334 * 0.5
-#HEIGHT = 750* 0.5
-#Config.set('graphics', 'width', int(WIDTH))
-#Config.set('graphics', 'height', int(HEIGHT))
+WIDTH = 1334 * 0.65 
+HEIGHT = 750* 0.8
+Config.set('graphics', 'width', int(WIDTH))
+Config.set('graphics', 'height', int(HEIGHT))
 
 
 from kivy.app import App
@@ -31,11 +31,14 @@ from kivy.lang import Builder
 from kivy.factory import Factory
 
 import images, consts
+from utils.common import recDotDict
 from scenerios.scenerios import load_all
+from game.managers.game_manager import GameManager
 
 # デフォルトに使用するフォントを変更する
 resource_add_path('./fonts')
 LabelBase.register(DEFAULT_FONT, consts.font) #日本語が使用できるように日本語フォントを指定する
+
 
 class TitleWidget(Widget):
   source = StringProperty(images.tragedy.logo)
@@ -96,32 +99,30 @@ class ScenerioSummaryWidget(ButtonBehavior, Label):
     self.text = self.scenerio.title if self.scenerio else '[新規作成]'
 
   def to_detail(self):
-    self.root.add_widget(ScenerioDetailWidget(root=self.root, 
-                                              scenerio=self.scenerio))
+    self.parent.add_widget(ScenerioDetailWidget(
+      root=self.root, 
+      scenerio=self.scenerio))
+
+  def to_gameboard(self):
+    self.root.to_gameboard(self.scenerio)
   pass
 
-
-# class MenuItem(ButtonBehavior, Label):
-#   def __init__(self, **kwargs):
-#     super(MenuItem, self).__init__(**kwargs)
-
-# class Menu(BoxLayout):
-#   def __init__(self, **kwargs):
-#     super(Menu, self).__init__(**kwargs)
-  
 class ScenerioSelectWidget(Widget):
   def __init__(self, **kwargs):
     super(ScenerioSelectWidget, self).__init__(**kwargs)
     self.mode = kwargs['mode']
+    self.root = kwargs['root']
     self.scenerios = load_all()    
     #for scenerio in self.scenerios:
     if self.mode == 'edit':
-      scenerio_widget = ScenerioSummaryWidget(root=self, scenerio=None)
+      scenerio_widget = ScenerioSummaryWidget(root=self.parent, scenerio=None)
       self.scenerio_list.page.add_widget(scenerio_widget)
       
     for i in range(8):
       scenerio = self.scenerios[0]
-      scenerio_widget = ScenerioSummaryWidget(root=self, scenerio=scenerio)
+      scenerio_widget = ScenerioSummaryWidget(
+        root=self.root, 
+        scenerio=scenerio)
       self.scenerio_list.page.add_widget(scenerio_widget)
       
 
@@ -132,19 +133,58 @@ class ScenerioSelectWidget(Widget):
     self.parent.to_mainmenu()
 
 
-class GameBoardWidget(Widget):
+
+class BoardCharacter(Button):
+  def __init__(self, **kwargs):
+    self.character = kwargs['character']
+    self.images = images.tragedy.characters[self.character.classname]
+    print(self.images)
+    super(BoardCharacter, self).__init__(**kwargs)
+
+class GameBoardWidget(BoxLayout):
     def __init__(self, **kwargs):
-      super(GameBoard, self).__init__(**kwargs)
+      super(GameBoardWidget, self).__init__(**kwargs)
+      self.scenerio = kwargs['scenerio'] 
+      self.game = GameManager(self.scenerio)
+      self.game.init_board()
+      self.state = self.game.board.get_state()
+      self.display_state(self.state)
+
+    def display_state(self, state):
+      for chara_state in state.characters:
+        chara = BoardCharacter(character=chara_state)
+        self.locations.ids[chara_state.location].add_widget(chara)
+        print(chara.character)
+        #break
+
+      # for c in self.locations.children[0].children:
+      #   print('----')
+      #   print(c, c.pos, c.size)
+      #   for cc in  c.children:
+      #     print(cc, cc.pos, cc.size)
+      #     for ccc in  cc.children:
+      #       print(ccc, ccc.pos, ccc.size)
+
     def back(self):
+      print('back')
       pass
       #self.parent.to_mainmenu()
+    def hospital_clicked(self):
+      pass
+    def shrine_clicked(self):
+      pass
+    def city_clicked(self):
+      pass
+    def school_clicked(self):
+      pass
 
 
 
 class GameRoot(BoxLayout):
     def __init__(self, **kwargs):
       super(GameRoot, self).__init__(**kwargs)
-
+      #self.to_gameboard()
+      
     def to_title(self):
       self.clear_widgets()
       self.add_widget(TitleWidget())
@@ -154,20 +194,29 @@ class GameRoot(BoxLayout):
       self.add_widget(MainMenuWidget())
       pass
 
+    def to_gameboard(self, scenerio=None):
+      if not scenerio:
+        scenerio = load_all()[0]
+      self.clear_widgets()
+      self.add_widget(GameBoardWidget(scenerio=scenerio))
+
+
     def to_scenerio_select(self, mode):
       self.clear_widgets()
-      self.add_widget(ScenerioSelectWidget(mode=mode))
+      self.add_widget(ScenerioSelectWidget(
+        root=self,
+        mode=mode))
 
 
-class TestApp(App):
+class RooperApp(App):
   def __init__(self, **kwargs):
-    super(TestApp, self).__init__(**kwargs)
+    super(RooperApp, self).__init__(**kwargs)
     self.title = 'Tragedy Rooper'
 
 if __name__ == '__main__':
   import sys
   reload(sys)
   sys.setdefaultencoding('utf-8')
-  TestApp().run()
+  RooperApp().run()
 
 

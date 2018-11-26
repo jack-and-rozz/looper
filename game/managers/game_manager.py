@@ -3,19 +3,20 @@ import collections
 from utils import common
 import pandas as pd
 
-from scenerios.scenerios import load_scenerio
 from game.base.board import Board
 import game.base.players as players
+from game.interfaces.text_interface import TextInterFace
 
 class GameManager(object):
   '''
   CUI-based.
   '''
-  def __init__(self, scenerio_path):
+  def __init__(self, scenerio, interface=None):
     self.board = None
     self.leader = 0
     self.loop = 1
-    self.scenerio = load_scenerio(scenerio_path)
+    self.interface = interface if interface else TextInterFace()
+    self.scenerio = scenerio
     self.max_loop = self.scenerio.loop
     self.max_day = self.scenerio.days
 
@@ -23,7 +24,7 @@ class GameManager(object):
     self.actors = [getattr(players, actor_type)(actor_id) for actor_id, actor_type in enumerate(self.scenerio.actors)]
     self.writer = getattr(players, self.scenerio.writer)()
     self.board = Board(self.scenerio, self.loop, 
-                       self.actors, self.writer, self.board)
+                       self.actors, self.writer, self.interface)
     self.show_as_text(self.board, show_hidden=True)
     return self.board.get_state(show_hidden=False)
 

@@ -1,6 +1,8 @@
 # coding:utf-8
 
 from game.managers.game_manager import GameManager
+from scenerios.scenerios import load_scenerio
+
 from utils import common
 import argparse, codecs, sys, collections, os
 sys.path.append(os.getcwd())
@@ -14,7 +16,8 @@ def game():
   return m
 
 def main(args):
-  m = GameManager(args.scenerio_path)
+  scenerio = load_scenerio(args.scenerio_path)
+  m = GameManager(scenerio)
   state = m.init_board()
   print(state)
   #m.start_game()

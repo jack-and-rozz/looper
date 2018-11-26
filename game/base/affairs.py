@@ -13,6 +13,9 @@ class AffairBase(object):
     self.occurred = False
     self.classname = self.__class__.__name__
 
+  def reset(self):
+    self.occured = False
+
   def reveal(self):
     self.culprit_revealed = True
 
@@ -21,7 +24,7 @@ class AffairBase(object):
     state += [
       ('_id', self._id), 
       ('day', self.day),
-      ('name', self.classname),
+      ('classname', self.classname),
       ('occurred', self.occurred),
     ]
     if show_hidden and not self.culprit_revealed:

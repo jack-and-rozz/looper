@@ -305,9 +305,7 @@ class DoctorAbility2(CharacterAbilityBase):
     self.target_types = [itypes.Character]
 
   def __call__(self, target):
-    pass
-    #target.
-    #raise NotImplementedError
+    target.unlock_keepout([Shrine, City, School])
 
   def available(self, target):
     # characters.pyでimportしてるからここは直に書くしか無い…?

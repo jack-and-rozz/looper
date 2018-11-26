@@ -1,8 +1,9 @@
 # coding:utf-8
 import importlib, json
 
-from utils import common
+from utils.common import recDotDict
 from game.base import locations, characters, consts, actions
+
 from game.managers.instance_manager import *#InstanceManager, CharacterManager
 import game.expansions as expansions
 
@@ -15,92 +16,64 @@ import game.expansions as expansions
 # 事件の犯人
 
 
-#これはクラスじゃなく関数のほうがいい？get_state, restore_state
+#プレイヤーに渡される現在のボードの状態
+# class State(object):
+#   def __init__(self, board, show_hidden, as_ids):
+#     self._state = common.dotDict()
 
-# class Summary(object):
-#   def __init__(self, board):
-#     self._summary = common.dotDict()
-#     self._summary.characters = board.characters.info(show_hidden)
-#     self._summary.locations = board.locations.info(show_hidden)
-#     self._summary.affairs = board.affairs.info(show_hidden)
-    
+#     self._state.loop = board.loop
+#     self._state.day = board.day
+#     self._state.phase = board.phase
+#     self._state.ex_gauge = board.ex_gauge
+
+#     self._state.rules = board.rules.state(show_hidden, as_ids)
+#     self._state.characters = board.characters.state(show_hidden, as_ids)
+#     self._state.locations = board.locations.state(show_hidden, as_ids)
+#     self._state.affairs = board.affairs.state(show_hidden, as_ids)
+
+#     self._state.actors = [actor.state(show_hidden, as_ids) for actor in board.actors]
+#     self._state.writer = board.writer.state(show_hidden, as_ids)
+
+#   @property
+#   def loop(self):
+#     return self._state.loop
+
+#   def day(self):
+#     return self._state.day
+
+#   def phase(self):
+#     return self._state.phase
+
+#   @property
+#   def actions(self):
+#     return self._state.actions
+
+#   @property
+#   def characters(self):
+#     return self._state.characters
+
+#   @property
+#   def locations(self):
+#     return self._state.locations
+
+#   @property
+#   def roles(self):
+#     return self._state.roles
+
+#   @property
+#   def rules(self):
+#     return self._state.rules
+
+#   @property
+#   def plots(self):
+#     return self._state.plots
 
 #   def __str__(self):
-#     return json.dumps(self._summary, ensure_ascii=False)
+#     return json.dumps(self._state, ensure_ascii=False)
 
-#プレイヤーに渡される現在のボードの状態
-class State(object):
-  def __init__(self, board, show_hidden, as_ids):
-    self._state = common.dotDict()
-
-    self._state.loop = board.loop
-    self._state.day = board.day
-    self._state.phase = board.phase
-    self._state.ex_gauge = board.ex_gauge
-
-    self._state.rules = board.rules.state(show_hidden, as_ids)
-    self._state.characters = board.characters.state(show_hidden, as_ids)
-    self._state.locations = board.locations.state(show_hidden, as_ids)
-    self._state.affairs = board.affairs.state(show_hidden, as_ids)
-
-    self._state.actors = [actor.state(show_hidden, as_ids) for actor in board.actors]
-    self._state.writer = board.writer.state(show_hidden, as_ids)
-
-    
-    #self._state.rules = board.rules.state(show_hidden)
-
-    # if show_plots[0]:
-    #   self.plots.writer = [(dest, act._id) for dest, act in board.writers_plots]
-    # else:
-    #   self.plots.writer = [(dest, consts.Unknown) for dest, act in board.writers_plots]
-    # self.plots.actors = []
-    # for i, (dest, act) in enumerate(board.actors_plots):
-    #   act_id = act._id if show_plots[1][i] else consts.Unknown
-    #   self.plots.actors.append((dest, act._id))
-
-    # self._state.actions = common.dotDict()
-    # self.actions.writer = sorted(board.writer.available_actions)
-    # self.actions.actors = [a.available_actions for a in board.actors]
-
-  @property
-  def loop(self):
-    return self._state.loop
-
-  def day(self):
-    return self._state.day
-
-  def phase(self):
-    return self._state.phase
-
-  @property
-  def actions(self):
-    return self._state.actions
-
-  @property
-  def characters(self):
-    return self._state.characters
-
-  @property
-  def locations(self):
-    return self._state.locations
-
-  @property
-  def roles(self):
-    return self._state.roles
-
-  @property
-  def rules(self):
-    return self._state.rules
-
-  @property
-  def plots(self):
-    return self._state.plots
-
-  def __str__(self):
-    return json.dumps(self._state, ensure_ascii=False)
 
 class Board(object):
-  def __init__(self, scenerio, loop, actors, writer, prev_board=None):
+  def __init__(self, scenerio, loop, actors, writer, interface):
     self.scenerio = scenerio
     self.max_loops = scenerio.loop
     self.loop = loop
@@ -108,6 +81,8 @@ class Board(object):
     self.day = 1
     self.actors = actors
     self.writer = writer
+    self.interface = interface
+
     # self.actors_plots = [] #[((0 or 1, dest_id), action_id), ...]
     # self.writers_plots = [] #[((0 or 1, dest_id), action_id), ...]
     self.phase = consts.phases.PreLoop
@@ -156,13 +131,26 @@ class Board(object):
   def check_logic_error(self):
     return
 
-  def get_state(self, show_hidden=True, as_ids=True):
+  def get_state(self, show_hidden=True, as_ids=False):
     '''
     変化するものを表示
     - show_hidden: 非公開情報を表示するか
     '''
-    state = State(self, show_hidden=show_hidden, as_ids=as_ids)
-    return state
+    board = self
+    state = recDotDict()
+    state.loop = board.loop
+    state.day = board.day
+    state.phase = board.phase
+    state.ex_gauge = board.ex_gauge
+    
+    state.rules = board.rules.state(show_hidden, as_ids)
+    state.characters = board.characters.state(show_hidden, as_ids)
+    state.locations = board.locations.state(show_hidden, as_ids)
+    state.affairs = board.affairs.state(show_hidden, as_ids)
+    
+    state.actors = [actor.state(show_hidden, as_ids) for actor in board.actors]
+    state.writer = board.writer.state(show_hidden, as_ids)
+    return recDotDict(state)
 
   def get_summary(self):
     '''

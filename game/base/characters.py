@@ -51,7 +51,7 @@ class CharacterBase(object):
     state = []
     state += [
       ('_id', self._id), 
-      ('name', self.classname),
+      ('classname', self.classname),
       #('jname', self.name)
     ]
     state += [
@@ -78,9 +78,13 @@ class CharacterBase(object):
     ]
     return OrderedDict(state)
 
+  #########################################
+  ##        自身に対する変化
+  #########################################
+
   def add_paranoia(self, value):
     self.paranoia = max(0, self.paranoia+value)
-
+    
   def add_goodwill(self, value):
     self.goodwill = max(0, self.goodwill+value)
 
@@ -98,13 +102,21 @@ class CharacterBase(object):
     self.role_revealed = True
 
   def die(self):
-    if not self.role.unkillable or self.bodyguard:
-      self.alive = False
-    if self.bodyguard:
+    if self.role.unkillable:
+      pass
+    elif self.bodyguard:
       self.remove_bodyguard()
+    else:
+      self.alive = False
+
+  def unlock_keepout(self, location_classes):
+    for c in location_classes:
+      self.keepout.remove(self.board.locations[c])
 
   def revive(self):
     self.alive = True
+
+  ############################################
 
   def is_in(self, location_class):
     '''
@@ -256,13 +268,13 @@ class Alien(CharacterBase):
     self.init_prop = [cprops.Girl]
     self.init_keepout = [locations_lib.Hospital]
 
-# class GodlyBeing(CharacterBase):
-#   def __init__(self, appearing_day):
-#     super(self.__class__, self).__init__(*args)
-#     self.paranoia_limit = 3
-#     self.init_location = locations_lib.Shrine
-#     self.init_prop = [cprops.Male, cprops.Female]
-#     self.appearing_day = appearing_day
+class GodlyBeing(CharacterBase):
+  def __init__(self, appearing_day):
+    super(self.__class__, self).__init__(*args)
+    self.paranoia_limit = 3
+    self.init_location = locations_lib.Shrine
+    self.init_prop = [cprops.Male, cprops.Female]
+    self.appearing_day = appearing_day
 
 class PoliceOfficer(CharacterBase):
   def __init__(self, *args):
@@ -328,7 +340,7 @@ class Patient(CharacterBase):
     super(self.__class__, self).__init__(*args)
     self.paranoia_limit = 2
     self.init_location = locations_lib.Hospital
-    self.init_keepout = [locations_lib.City, locations_lib.School, locations_lib.Shrine]
+    self.init_keepout = [locations_lib.Shrine, locations_lib.City, locations_lib.School]
     self.init_prop = [cprops.Boy]
   
 class Nurse(CharacterBase):
@@ -339,33 +351,36 @@ class Nurse(CharacterBase):
     self.init_location = locations_lib.Hospital
     self.init_prop = [cprops.Adult, cprops.Female]
 
-# class HenchMan(CharacterBase):
-#   def __init__(self, *args):
-#     super(self.__class__, self).__init__(*args)
-#     self.paranoia_limit = 1
-#     self.init_location = None
-#     self.init_prop = [cprops.Adult, cprops.Male]
+class HenchMan(CharacterBase):
+  def __init__(self, *args):
+    super(self.__class__, self).__init__(*args)
+    self.paranoia_limit = 1
+    self.init_location = None
+    self.init_prop = [cprops.Adult, cprops.Male]
 
+# 順番はカード番号の順番で
 name_to_class = OrderedDict((
   ('男子学生', BoyStudent),
   ('女子学生', GirlStudent),
   ('お嬢様', RichMansDaughter),
-  ('委員長', ClassRep),
-  ('イレギュラー', MysteryBoy),
   ('巫女', ShrineMaiden),
-  ('異世界人', Alien),
   ('刑事', PoliceOfficer),
   ('サラリーマン', OfficeWorker),
   ('情報屋', Informer),
+  ('医者', Doctor),
+  ('入院患者', Patient),
+
+  ('委員長', ClassRep),
+  ('イレギュラー', MysteryBoy),
+  ('異世界人', Alien),
+  ('神格', GodlyBeing),
   ('アイドル', PopIdol),
   ('マスコミ', Journalist),
   ('大物', Boss),
-  ('医者', Doctor),
-  ('入院患者', Patient),
   ('ナース',  Nurse),
-
-  #('神格', GodlyBeing),
-  #('手先',  HenchMan),
+  ('手先',  HenchMan),
 ))
 
 class_to_name = common.invert_dict(name_to_class)
+  
+classnames = [c.__name__ for c in class_to_name.keys()]
