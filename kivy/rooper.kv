@@ -1,0 +1,400 @@
+#: import get_color_from_hex kivy.utils.get_color_from_hex
+#: import consts consts
+#: import images images
+#: import ew kivy.uix.effectwidget
+GameRoot:
+
+<GameRoot>
+    #GameBoardWidget:
+    #    id: gameboard
+    #MainMenuWidget:
+    #    id: mainmenu
+    TitleWidget
+        id: title
+
+
+<GameBoardLocationWidget@Widget>
+    size: self.parent.size
+    #  pos: self.parent.x
+    # y: self.parent.y
+    GridLayout:
+        pos: self.parent.pos
+        size: self.parent.size
+        cols:2
+        rows:2
+        spacing:2
+        padding:2
+        opacity: 1.0
+        BoxLayout
+            id: Hospital
+            Button:
+                on_press: self.opacity = 0.5;print(self.parent.pos, self.parent.parent.pos)
+                on_release: self.opacity = 1.0
+                background_color: 0,0,0,0
+                Image:
+                    size: self.parent.size
+                    x:self.parent.right - self.width
+                    y:self.parent.y
+                    source: images.tragedy.locations.Hospital
+            # ScrollView:
+            #     #size_hint_x: 5
+            #     row_default_height: self.parent.height / 2
+            #     background_color: 0,0,0,1
+            #     do_scroll_y: False
+            #     GridLayout:
+            #         rows:1
+        BoxLayout:
+            id: Shrine
+            Button:
+                on_press: self.opacity = 0.5; 
+                on_release: self.opacity = 1.0
+                background_color: 1,0,0,0
+                Image:
+                    size: self.parent.size 
+                    x:self.parent.x
+                    y:self.parent.y
+                    source: images.tragedy.locations.Shrine
+        #BoxLayout:
+        AnchorLayout:
+            Button:
+                on_press: self.opacity = 0.5; print(self.size, self.x, self.y); print(self.children[0].size, self.children[0].x, self.children[0].y, self.children[0].get_image_ratio())
+                on_release: self.opacity = 1.0
+                background_color: 0,0,0,0
+                #width: min(self.width, self.height * self.children[0].get_image_ratio()) # Infinite iteration
+                Image:
+                    size: self.parent.size 
+                    x:self.parent.right - self.width
+                    y:self.parent.top - self.height
+                    source: images.tragedy.locations.City
+            ScrollView:
+                #size_hint_x: 5
+                #row_default_height: self.parent.height / 2
+                background_color: 0,0,0,1
+                do_scroll_y: False
+                GridLayout:
+                    id: City
+                    rows:1
+                    #size_hint_x: None
+                    width : self.minimum_width
+                    height: self.parent.height /2
+                    row_default_width: self.parent.width / 4
+                    #col_force_default: True
+
+ 
+        BoxLayout:
+            id: School
+            Button:
+                #on_press: root.school_clicked()
+                on_press: self.opacity = 0.5; print(self.size, self.x, self.y); print(self.children[0].size, self.children[0].x, self.children[0].y, self.children[0].image_ratio)  
+                on_release: self.opacity = 1.0
+                background_color: 0,0,0,0
+                Image:
+                    size: self.parent.size
+                    x:self.parent.x
+                    y:self.parent.top - self.height
+                    source: images.tragedy.locations.School
+
+
+<BoardCharacter@Button>:
+    Image:
+        size: self.parent.size 
+        pos: self.parent.pos
+        source: self.parent.images.alive_card
+ 
+
+<GameBoardWidget@BoxLayout>
+    # IDs
+    locations: locations
+
+    #
+    orientation: 'vertical'
+    opacity: consts.menu.background.opacity
+    source: consts.menu.background.image
+    background_color: 1,1,1,1
+
+    ActionBar:
+        size_hint_y: 1
+        background_color: 0,1,0,1
+
+    BoxLayout:
+        id: mainbox
+        orientation: 'horizontal'
+        size_hint_y: 7
+        Button:
+            size_hint_x: 0.8
+            Image:
+                size: self.parent.size
+                pos: self.parent.pos
+                source: images.tragedy.databoard
+        GameBoardLocationWidget:
+            id: locations
+            size_hint_x: 3.5
+        Button:
+            size_hint_x: 1
+    Button:
+        size_hint_y: 1
+        background_color: 0,0,0,0
+
+
+<BackButton@Button>:
+    id: back
+    text: '←'
+    font_size: self.height
+    y: self.parent.height - self.height
+    background_color: 0,0,0,0 #get_color_from_hex("#398133")
+    on_press: self.parent.back()
+
+    Image:
+        source: 'images/tragedy_commons_kai/icon.png'
+        opacity: 1.0
+        size: self.parent.size
+        allow_stretch: True
+        x: self.parent.x
+        y: self.parent.y
+        #center_x: self.parent.center_x
+        #center_y: self.parent.center_y
+
+<BlurEffect@EffectWidget>
+    size: self.parent.size 
+    effects: [ew.MonochromeEffect()]
+    Image:
+        source: images.title.effect
+        opacity: 0.7
+        size: self.parent.size
+        allow_stretch: True
+        keep_ratio:False
+
+# TODO
+<ScenerioDetailWidget@Widget>:
+    size: self.root.size
+    Button:
+        size:self.parent.size
+        background_color: 0,0,0,1
+    BackButton
+
+
+<ScenerioSummaryWidget@ButtonBehavior+Label>:
+    font_size: self.height * 0.6
+    color: get_color_from_hex("#332333")
+    canvas.before:
+        # Color:
+        #     rgba: [.2, .2, .2, 1] if self.state == 'down' else [0, 0, 0, 0]
+        Rectangle:
+            pos: self.pos
+            size: self.size
+            source: 'images/button/btn047/btn047_09.png'
+        # Color:
+            # rgba: [1, 1, 1, 1]
+        # Line:
+        #     rectangle: [self.x, self.y, self.width, self.height]
+    on_press: self.to_gameboard()
+
+    # Image:
+    #     source: 'images/button/btn048/btn048_15.png'
+    #     size: self.parent.size
+
+<ScenerioList@BoxLayout>
+    page: id_layout
+    orientation: 'vertical'
+    size: self.parent.size
+    # Label:
+    #     size_hint_y: 1
+    #     text: 'シナリオ一覧'
+    #     font_size: self.height * 0.7
+    BoxLayout
+    BoxLayout:
+        size_hint_y: 5
+        orientation: 'horizontal'
+        BoxLayout
+        ScrollView:
+            size_hint_x: 5
+            do_scroll_x: False
+            GridLayout:
+                id: id_layout
+                cols: 1
+                size_hint_y: None
+                width : self.parent.width
+                height: self.minimum_height 
+                row_default_height: self.parent.height / 7 
+                x: self.parent.x + self.width / 2
+                row_force_default: True                    
+                spacing: 10
+        BoxLayout
+
+
+<ScenerioSelectWidget>:
+    scenerio_list: scenerio_list
+    padding: [5]
+    spacing: 20
+    #size: root.size
+    Image:
+        opacity: consts.menu.background.opacity
+        size: self.parent.size
+        source: consts.menu.background.image
+        allow_stretch: True
+    BlurEffect
+    BackButton
+    ScenerioList:
+        id: scenerio_list
+
+# <MainBackGround@Image>:
+#     size: self.parent.size
+#     pos: self.parent.pos
+#     opacity: consts.menu.background.opacity
+#     #size: root.size
+#     source: consts.menu.background.image
+#     allow_stretch: True
+
+<MainMenuWidget>
+    Image:
+        opacity: consts.menu.background.opacity
+        size: self.parent.size
+        #size: root.size
+        source: consts.menu.background.image
+        allow_stretch: True
+    BlurEffect
+    BackButton
+    BoxLayout:
+        size: self.parent.size
+        orientation: 'horizontal'
+        spacing:2
+        padding:2
+        background_color: 200, 20, 20
+
+        BoxLayout:
+        BoxLayout:
+            x : self.parent.x - self.width/2
+            border: 10, 10, 10, 10
+            orientation: 'vertical'
+            BoxLayout
+            Button:
+                text: '脚本家をプレイ'
+                background_color: consts.menu.button.color
+                border: 0,0,0,0
+                font_size: consts.menu.text.font_size 
+                color: consts.menu.text.color
+                on_press: root.play_writer()
+            Button:
+                text: 'シナリオ作成'
+                background_color: consts.menu.button.color
+                border: 0,0,0,0
+                font_size: consts.menu.text.font_size 
+                color: consts.menu.text.color
+                on_press: root.edit_scenerio()
+                # Image:
+                #     x:self.parent.x
+                #     y:self.parent.y
+                #     source: consts.menu.button.image
+                #     size: self.parent.size
+                #     allow_stretch: True
+            BoxLayout
+            
+        BoxLayout:
+
+<TitleWidget>:
+    GameBoardLocationWidget
+    # GridLayout:
+    #     cols:2
+    #     rows:2
+    #     x: self.parent.x
+    #     y: self.parent.y
+    #     size: self.parent.size
+    #     spacing:2
+    #     padding:2
+    #     opacity: 1.0
+    #     Button:
+    #         on_press: root.start_button_clicked()
+    #         background_color: 0,0,0,0
+    #         Image:
+    #             x:self.parent.x
+    #             y:self.parent.y
+    #             source: images.tragedy.locations.hospital
+    #             size: self.parent.size
+    #             allow_stretch: True
+    #     Button:
+    #         on_press: root.start_button_clicked()
+    #         background_color: 0,0,0,0
+    #         Image:
+    #             x:self.parent.x
+    #             y:self.parent.y
+    #             source: images.tragedy.locations.shrine
+    #             size: self.parent.size
+    #             allow_stretch: True
+    #     Button:
+    #         on_press: root.start_button_clicked()
+    #         background_color: 0,0,0,0
+    #         Image:
+    #             x:self.parent.x
+    #             y:self.parent.y
+    #             source: images.tragedy.locations.city
+    #             size: self.parent.size
+    #             allow_stretch: True
+    #     Button:
+    #         on_press: root.start_button_clicked()
+    #         background_color: 0,0,0,0
+    #         Image:
+    #             x:self.parent.x
+    #             y:self.parent.y
+    #             source: images.tragedy.locations.school
+    #             size: self.parent.size
+    #             allow_stretch: True
+
+    BlurEffect
+
+    BoxLayout:
+        orientation: 'vertical'
+        size: root.size
+        Image:
+            source: root.source
+        BoxLayout:
+            #padding: 20,30,20,10
+            id: characters_box
+            characters: images.get_random_character_path(2)
+            Button:
+                id: titlechar1
+                #border: (10,10,10,10)
+                size_hint_y: 1.4
+                on_press: root.side_button_clicked()
+                background_color: 0, 0, 0, 0
+                Image:
+                    source: self.parent.parent.characters[0].stand
+                    size: self.parent.size
+                    x: self.parent.x
+                    y: self.parent.y
+            EffectWidget:
+                size_hint_x: 0.5
+                size_hint_y: 1.8
+                #effects: ew.InvertEffect(), ew.HorizontalBlurEffect(size=2.0)
+                #effects: [ew.HorizontalBlurEffect(size=2.0)]
+                Button:
+                    id: start_game
+                    background_color: 0, 0, 0, 0
+                    #text: "Touch Screen"
+                    #font_size: 35
+                    valign: 'bottom'
+                    on_press: root.start_button_clicked()
+                    Label:
+                        text: 'Touch Screen'
+                        font_size: 35
+                        x: self.parent.center_x - self.width/2
+                        y: self.parent.center_y - 70
+                        bold: True
+                # Image:
+                #     source: images.ROOT + 'clock.png'
+                #     x: self.parent.x + self.parent.width / 2 - self.width / 2
+                #     y: self.parent.y + self.parent.height / 2
+            Button
+                id: titlechar2
+                background_color: 0, 0, 0, 0
+                size_hint_y: 1.4
+                on_press: root.side_button_clicked()
+                Image:
+                    source: self.parent.parent.characters[1].stand
+                    size: self.parent.size 
+                    x: self.parent.right - self.width
+                    y: self.parent.y
+            # Button:
+            #     id: button3
+            #     text: "サンプル3"
+            #     font_size: 30
+            #     on_press: root.buttonClicked3()

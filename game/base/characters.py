@@ -166,8 +166,8 @@ class CharacterBase(object):
       actions_lib.MoveCross
     ]
     direction = (0, 0)
-    for a in [a for a in common.select_instance(actions, move_action_types)]:
-      direction = [d1 + d2 for d1, d2 in zip(direction, a(self))]
+    for action in [action for action in common.select_instance(actions, move_action_types)]:
+      direction = [d1 + d2 for d1, d2 in zip(direction, action(self))]
     self.move(direction, self.board.locations)
 
   def move(self, direction, locations):
